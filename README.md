@@ -258,3 +258,5 @@ The application includes several resilience mechanisms:
 - Default retry configuration: 3 attempts with 1s, 2s, and 4s delays
 - Global error middleware to ensure graceful failure handling
 - Standardized error responses that maintain compatibility with Telegram's API 
+
+<!-- Trigger CI/CD --> 
