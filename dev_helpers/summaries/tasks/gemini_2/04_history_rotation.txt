@@ -1,0 +1,4 @@
+hash:3b5a5ea3746a3a67a275f7051ff26ca6efa77bcb57494cb030a81ba4c9f95af0
+path:tasks/gemini_2/04_history_rotation.md | source:tasks/gemini_2/04_history_rotation.md | lastUpdated:2025-05-21T13:21:45.077041 | lines:48
+
+This document outlines the task to implement automatic conversation history rotation and summarization for a bot. Its main purpose is to manage context length by trimming old messages and replacing them with concise summaries. The core functionality is handled by the new `history_manager.py` component, which counts messages, triggers summarization via `summarizer.py`, stores summaries, and deletes old messages using `firestore_client.py`. This process is integrated into the message handling flow in `telegram_router.py`. Configuration options control the history threshold and summary limits.

@@ -1,0 +1,8 @@
+gemini_1 status update:
+
+Checked `.github/workflows/deploy.yml`. 
+The step to run `python scripts/set_webhook.py` with `TELEGRAM_TOKEN` and `SERVICE_URL` (from `steps.deploy.outputs.url`) is already present and correctly configured after the Cloud Run deployment step.
+
+No changes were made. Task `07_credential_purge.md` remains `done`.
+
+Ready for Human to proceed with adding GitHub Secrets and testing the deployment. 

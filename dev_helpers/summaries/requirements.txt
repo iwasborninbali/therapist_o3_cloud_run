@@ -1,0 +1,4 @@
+hash:98fc41e9d6f19be3bd9a47e18f3f6777e90c8a5e98f85b40ba75c31f07aad591
+path:requirements.txt | source:requirements.txt | lastUpdated:2025-05-21T13:05:08.956171 | lines:15
+
+This `requirements.txt` file lists the Python dependencies for a project. It includes libraries for building a FastAPI web API (`fastapi`, `uvicorn`) and interacting with external services. Key integrations include the Telegram Bot API (`python-telegram-bot`), Google Cloud Firestore (`google-cloud-firestore`), and AI models (`openai`, `google-generativeai`). Utilities like `pydantic` for data validation and `python-dotenv` for configuration are also present. Development dependencies for testing (`pytest`) and Docker interaction are included.

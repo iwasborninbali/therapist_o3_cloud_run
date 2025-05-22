@@ -1,0 +1,4 @@
+hash:c3647a6d6432741fca8ea3c0ac9816dae233b330852a7f2c89e650925f5c03dd
+path:bot/history_manager.py | source:bot/history_manager.py | lastUpdated:2025-05-22T22:50:25.397655 | lines:137
+
+This file, `history_manager.py`, manages user conversation history stored in Firestore. Its main function, `manage_history`, checks if a user's history exceeds a configured message threshold. If the history is too long, it summarizes the oldest messages using an external summarizer. The generated summary is stored, the corresponding old messages are deleted from Firestore, and the number of stored summaries is kept within a limit. This process helps maintain manageable history lengths and provides summaries of past conversations.

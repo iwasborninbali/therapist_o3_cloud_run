@@ -1,0 +1,4 @@
+hash:00e25f54d478de61a6715f98a561c01553b1ec6a389cb4920b50181e063fdfac
+path:bot/main.py | source:bot/main.py | lastUpdated:2025-05-21T13:27:09.066663 | lines:88
+
+This file serves as the main entry point for a FastAPI application designed to handle a Telegram bot's webhook. It initializes and manages a `telegram.ext.Application` instance using a lifespan context manager. The application exposes a `/webhook` endpoint to receive and process updates from Telegram. It also includes basic root (`/`) and health check (`/health`) endpoints. Error handling middleware is added to the FastAPI app.

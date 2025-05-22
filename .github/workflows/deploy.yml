@@ -1,0 +1,113 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write # Required for authentication to Google Cloud
+
+jobs:
+  build-and-push-to-gcr:
+    name: Build and Push to Artifact Registry
+    runs-on: ubuntu-latest
+    environment: production # Optional: if you have a GitHub environment for production secrets
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check for prohibited artifacts
+        run: |
+          ! grep -R --line-number --quiet -E 'adminsdk.*\.json' . && ! test -e firebase.json && ! test -d functions || (echo "❌ Credential or functions artefacts detected"; exit 1)
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }} # Service Account Key
+          # workload_identity_provider: 'projects/YOUR_PROJECT_ID/locations/global/workloadIdentityPools/YOUR_POOL_ID/providers/YOUR_PROVIDER_ID' # Alternative: Workload Identity Federation
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: |
+          gcloud auth configure-docker ${{ secrets.CLOUD_RUN_REGION }}-docker.pkg.dev
+
+      - name: Build Docker image
+        env:
+          IMAGE_NAME: ${{ secrets.CLOUD_RUN_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.DOCKER_REGISTRY_REPO }}/${{ secrets.CLOUD_RUN_SERVICE_NAME }}
+        run: |
+          docker build -t $IMAGE_NAME:${{ github.sha }} -t $IMAGE_NAME:latest .
+
+      - name: Push Docker image to Artifact Registry
+        env:
+          IMAGE_NAME: ${{ secrets.CLOUD_RUN_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.DOCKER_REGISTRY_REPO }}/${{ secrets.CLOUD_RUN_SERVICE_NAME }}
+        run: |
+          docker push $IMAGE_NAME:${{ github.sha }}
+          docker push $IMAGE_NAME:latest
+
+  deploy-to-cloud-run:
+    name: Deploy to Cloud Run
+    needs: build-and-push-to-gcr
+    runs-on: ubuntu-latest
+    environment: production # Optional: if you have a GitHub environment for production secrets
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check for prohibited artifacts
+        run: |
+          ! grep -R --line-number --quiet -E 'adminsdk.*\.json' . && ! test -e firebase.json && ! test -d functions || (echo "❌ Credential or functions artefacts detected"; exit 1)
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }} # Service Account Key
+          # workload_identity_provider: 'projects/YOUR_PROJECT_ID/locations/global/workloadIdentityPools/YOUR_POOL_ID/providers/YOUR_PROVIDER_ID' # Alternative: Workload Identity Federation
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ secrets.CLOUD_RUN_SERVICE_NAME }} # Name of the Cloud Run service (TELEGRAM-AI)
+          region: ${{ secrets.CLOUD_RUN_REGION }} # Region of the Cloud Run service (us-central1)
+          image: ${{ secrets.CLOUD_RUN_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.DOCKER_REGISTRY_REPO }}/${{ secrets.CLOUD_RUN_SERVICE_NAME }}:${{ github.sha }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          env_vars: |
+            TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            FIREBASE_CRED_JSON='${{ secrets.FIREBASE_CRED_JSON }}' # Ensure this is correctly formatted (single quotes if JSON string)
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            # Add any other environment variables your application needs
+          flags: --min-instances=0 --allow-unauthenticated # Set min-instances and allow unauthenticated access
+
+      - name: Output Deployed URL
+        run: |
+          echo "Deployed to: ${{ steps.deploy.outputs.url }}"
+
+      - name: Run flake8 (non-blocking)
+        run: flake8 . || echo "flake8 warnings ignored (internal project)"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' # Or your project's Python version
+
+      - name: Install dependencies for webhook script
+        run: pip install -r requirements.txt # Assuming requests is in requirements.txt
+
+      - name: Run set_webhook.py script
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          SERVICE_URL: ${{ steps.deploy.outputs.url }} # Use the deployed service URL from the previous step
+        run: |
+          python scripts/set_webhook.py 

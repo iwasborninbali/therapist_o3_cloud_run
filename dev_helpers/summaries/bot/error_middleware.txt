@@ -1,0 +1,4 @@
+hash:8b36a498fdfd1a71893d31e226bfbde6b61f22bb0b5bbe596458ec3d46a7b230
+path:bot/error_middleware.py | source:bot/error_middleware.py | lastUpdated:2025-05-21T13:16:49.376611 | lines:65
+
+This file defines a FastAPI middleware, `ErrorHandlingMiddleware`, designed to catch unhandled exceptions during request processing. It logs detailed error information, including stack traces, in a structured JSON format using the standard logging module. Upon catching an error, it returns a standardized JSON response `{"error": "internal"}` with a 200 status code, noted as being for Telegram integration. A helper function `add_error_middleware` is included to easily apply this middleware to a FastAPI application instance.

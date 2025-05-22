@@ -1,0 +1,4 @@
+hash:2e68d83e2f521dee4bf394a1ad3a551ebf142710d433902b82cb7a04daa27277
+path:tests/conftest.py | source:tests/conftest.py | lastUpdated:2025-05-22T22:48:52.212085 | lines:143
+
+This `conftest.py` file is used by pytest to configure the testing environment for a FastAPI application. Its main purpose is to provide fixtures that mock external dependencies such as Google Cloud Firestore, OpenAI API, and Telegram. It uses `monkeypatch` and `unittest.mock.patch` to replace real service calls with mock functions that often interact with in-memory data (`mock_firestore_data`). The `app` fixture builds the FastAPI application with these mocked components, ensuring tests run in isolation. The `client` fixture then provides a `TestClient` for making requests against the mocked application instance.

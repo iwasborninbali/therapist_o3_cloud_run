@@ -1,0 +1,4 @@
+hash:7511e6bd1285a3252aa3870680d28407ef49827efb3c8bfc5366c5e29dca595b
+path:scripts/set_webhook.py | source:scripts/set_webhook.py | lastUpdated:2025-05-21T13:27:25.763345 | lines:142
+
+This Python script is designed to set the webhook for a Telegram bot. It requires the bot token and the HTTPS service URL, which can be provided via command-line arguments or environment variables. The `set_telegram_webhook` function sends a POST request to the Telegram API with the specified URL and optional secret token. It includes logging and retry logic for handling potential API request failures. The script's `main` function parses arguments, validates inputs, calls the webhook setting function, and reports success or failure.

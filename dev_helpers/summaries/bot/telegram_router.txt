@@ -1,0 +1,4 @@
+hash:8b322e547a462890468a0ce5e469258e9f6329250ab94a39bb92c9dd74af24f4
+path:bot/telegram_router.py | source:bot/telegram_router.py | lastUpdated:2025-05-21T13:22:18.184950 | lines:157
+
+This file, `telegram_router.py`, configures message and command handlers for a Telegram bot using the `python-telegram-bot` library. It defines functions like `start_command` and `help_command` for basic bot interactions. The central `handle_message` function processes user text: it retrieves conversation history and system prompts from a Firestore database, sends the context to an OpenAI client for a response, and saves the interaction back to Firestore. Helper functions ensure reliable message sending and history management. Finally, `setup_handlers` registers these functions with the Telegram application instance.

@@ -1,0 +1,4 @@
+hash:ee4f19c39649ab3906740e03225b1b3a83f41bd5d18e252b51fc78bbe3daadb6
+path:docs/ADR-0002-cloud-run-deploy.md | source:docs/ADR-0002-cloud-run-deploy.md | lastUpdated:2025-05-21T13:38:14.261777 | lines:69
+
+This ADR documents the decision to automate the deployment of the Telegram AI Assistant application. It proposes using a GitHub Actions workflow (`deploy.yml`) for a CI/CD pipeline. This pipeline will build the Docker image, push it to Google Artifact Registry, and deploy it to a Google Cloud Run service (`TELEGRAM-AI`). It leverages GitHub Secrets for secure credential management, passing necessary environment variables to Cloud Run. Finally, a script will update the Telegram bot's webhook URL after a successful deployment.

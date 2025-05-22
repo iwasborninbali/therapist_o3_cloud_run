@@ -1,0 +1,4 @@
+hash:eed56a5c68674ac0ca50cec25d8b7063b57d46b1e24d84204c0e0c9420e3c039
+path:bot/openai_client.py | source:bot/openai_client.py | lastUpdated:2025-05-21T13:18:13.289695 | lines:49
+
+This file provides a Python client for interacting with the OpenAI API. It initializes the `OpenAI` client using configuration settings, including the API key and model. The main function, `get_response`, sends a list of conversation messages to the API to generate a text response. It incorporates retry logic for transient errors and includes basic error handling and logging.

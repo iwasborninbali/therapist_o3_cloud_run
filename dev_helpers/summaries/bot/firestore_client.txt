@@ -1,0 +1,4 @@
+hash:2c4722eb8644fe3f1a5dc858c6589ee785193934833d80ebb082d09b02e99d4b
+path:bot/firestore_client.py | source:bot/firestore_client.py | lastUpdated:2025-05-22T22:49:53.037312 | lines:209
+
+This file provides a client module for interacting with Google Cloud Firestore. Its main purpose is to manage user-specific data for a bot application, including conversation history, summaries, and custom system prompts. It includes functions like `get_history`, `add_message`, `get_summaries`, `add_summary`, `get_system_prompt`, and `set_system_prompt` to perform CRUD operations on this data. The Firestore client is initialized lazily, and database operations are wrapped with retry logic. This module serves as a data access layer for storing and retrieving user information in Firestore.

@@ -1,0 +1,4 @@
+hash:6255d315f928ccebe564381ace8d5a7324561e8683dbba352e3b8114a105d1ae
+path:tests/test_history_rotation.py | source:tests/test_history_rotation.py | lastUpdated:2025-05-21T13:21:19.276955 | lines:217
+
+This file contains unit tests for the bot's conversation history management logic. It uses `pytest` and `unittest.mock` to test functions from `bot.history_manager`. The tests verify that `manage_history` correctly summarizes and deletes old messages when the history exceeds a configured threshold. It also tests the `_ensure_max_summaries` function, ensuring that only a maximum number of summaries are retained by deleting the oldest ones via Firestore batch operations.

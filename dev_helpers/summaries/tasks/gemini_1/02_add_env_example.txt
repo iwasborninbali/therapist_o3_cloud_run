@@ -1,0 +1,4 @@
+hash:7a429a426955aa1064e0b116a33b256422bc428320099bd100f5d3c466f0bebb
+path:tasks/gemini_1/02_add_env_example.md | source:tasks/gemini_1/02_add_env_example.md | lastUpdated:2025-05-21T12:40:47.766785 | lines:19
+
+This markdown file describes a development task focused on environment configuration. The main purpose is to create an `.env.example` file containing required environment variables. It also involves updating `.gitignore` to exclude the actual `.env` file while keeping the example, and updating `README.md` with instructions. This task ensures new developers can easily set up their local environment by copying the example file.
