@@ -7,6 +7,8 @@
 # Remove the overly broad *.json rule if it exists and use specific patterns:
 # !*.json # If you had *.json previously and want to un-ignore most JSONs
 *-firebase-adminsdk*.json
+# Exception for our specific credentials file
+!ales-f75a1-firebase-adminsdk-fbsvc-e008504e79.json
 *-sa.json
 *.private.*json
 credentials.json
@@ -50,4 +52,4 @@ Thumbs.db
 
 # Firebase Functions artifacts
 /functions/
-firebase.json 
+firebase.json github-deployer-key.json
