@@ -5,8 +5,15 @@ from bot.retry_utils import retry_sync
 
 logger = logging.getLogger(__name__)
 
-# Initialize OpenAI client
-client = OpenAI(api_key=Config.OPENAI_API_KEY)
+# OpenAI client will be initialized lazily
+_client = None
+
+def get_client():
+    """Get OpenAI client, creating it if needed"""
+    global _client
+    if _client is None:
+        _client = OpenAI(api_key=Config.OPENAI_API_KEY)
+    return _client
 
 
 @retry_sync()
@@ -24,6 +31,7 @@ def get_response(messages):
         logger.debug(
             f"Sending request to OpenAI with {len(messages)} messages")
 
+        client = get_client()
         response = client.chat.completions.create(
             model=Config.OPENAI_MODEL,
             messages=[
