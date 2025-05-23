@@ -1,6 +1,7 @@
 import os
 from fastapi import FastAPI, Request
 from telegram.ext import Application
+from telegram import Update
 from bot.telegram_router import setup_handlers
 from contextlib import asynccontextmanager
 from bot.error_middleware import add_error_middleware
@@ -64,8 +65,16 @@ def build_app():
             # The test fixtures will handle mocking the appropriate components
             return {"status": "ok"}
 
-        # Use the actual bot to process the update
-        await app.state.telegram_bot.update_queue.put(update_data)
+        # Create Update object from JSON data and process it
+        try:
+            update = Update.de_json(update_data, app.state.telegram_bot.bot)
+            await app.state.telegram_bot.process_update(update)
+        except Exception as e:
+            # Log the error but return OK to Telegram to avoid retries
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error processing update: {e}")
+        
         return {"status": "ok"}
 
     @app.get("/health")
