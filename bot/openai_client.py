@@ -34,15 +34,12 @@ def get_response(messages):
         client = get_client()
         response = client.chat.completions.create(
             model=Config.OPENAI_MODEL,
+            reasoning_effort='high',
             messages=[
                 {"role": msg["role"], "content": msg["content"]}
                 for msg in messages
             ],
-            temperature=0.7,
-            max_completion_tokens=1000,
-            top_p=1.0,
-            frequency_penalty=0.0,
-            presence_penalty=0.0
+            max_completion_tokens=10000
         )
 
         # Extract the response content
