@@ -39,7 +39,7 @@ def get_response(messages):
                 for msg in messages
             ],
             temperature=0.7,
-            max_tokens=1000,
+            max_completion_tokens=1000,
             top_p=1.0,
             frequency_penalty=0.0,
             presence_penalty=0.0
