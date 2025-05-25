@@ -1,0 +1,4 @@
+hash:608ba841c7b16ea693b3c77e286d085af5727d8e81b9d182908ea531ff83844c
+path:tests/test_proactive_schedule.py | source:tests/test_proactive_schedule.py | lastUpdated:2025-05-25T16:20:02.473824 | lines:203
+
+This Python file contains unit tests for the proactive message scheduling logic using `pytest`. It verifies the core function `should_send_proactive_message` and the `process_all_users` flow. The tests ensure messages are scheduled correctly based on user timezones and prevent sending duplicate messages within the same day/slot. It uses mocking extensively to simulate dependencies like Firestore data and the current time.

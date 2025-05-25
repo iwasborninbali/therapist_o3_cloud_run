@@ -5,15 +5,39 @@
 
 A containerized Telegram bot that integrates with OpenAI's API to provide AI-assisted conversations, with data storage in Firebase Firestore. The application is deployed on Google Cloud Run.
 
+## Architecture Overview
+
+The application consists of two Cloud Run services:
+
+```
+┌─────────────────────┐    ┌──────────────────────┐
+│   therapist-o3      │    │ therapist-scheduler  │
+│   (Main Bot)        │    │ (Proactive Messages) │
+├─────────────────────┤    ├──────────────────────┤
+│ • FastAPI webhook   │    │ • Python scheduler   │
+│ • Public endpoint   │    │ • Private service    │
+│ • Scales 0-10       │    │ • Always-on (min=1)  │
+│ • 1GB RAM, 1 CPU    │    │ • 512MB RAM, 0.5 CPU │
+└─────────────────────┘    └──────────────────────┘
+           │                           │
+           └───────────┬───────────────┘
+                       │
+                ┌─────────────┐
+                │  Firestore  │
+                │  Database   │
+                └─────────────┘
+```
+
 ## Features
 
 - Conversation history management with Firebase Firestore
 - Context-aware AI responses using OpenAI
 - Automatic summarization of long conversations using Gemini
 - User-specific system prompts
-- Automated conversation length management with history trimming and summarization.
-- Robust error handling and retry mechanisms for external API calls.
-- Automated CI checks and (soon) CD to Google Cloud Run.
+- Automated conversation length management with history trimming and summarization
+- **Universal proactive message scheduler** with per-user timezone support and deduplication
+- Robust error handling and retry mechanisms for external API calls
+- **Automated CI/CD pipeline** with auto-deploy to Google Cloud Run
 
 ## Environment Setup
 
@@ -79,6 +103,42 @@ To ensure efficient processing and manage context windows for the AI model, the 
 - **Trimming:** The messages that were summarized are then removed from the active conversation history in Firestore to keep the main history log manageable.
 
 This process helps maintain long-term context for extended conversations while keeping the operational cost and API request sizes optimized.
+
+## Proactive Message Scheduler
+
+The bot includes a universal proactive message scheduler that sends automated check-ins to users at 10:00 AM and 8:00 PM in their local timezone.
+
+### How It Works
+
+- **Per-User Timezone Support**: Each user can set their timezone via the `/timezone` command (Bali or Moscow currently supported)
+- **Universal Scheduler**: A single Cloud Run service (`Dockerfile.scheduler`) runs `scripts/proactive_messages.py` continuously
+- **Deduplication**: Uses Firestore `proactive_meta` collection to track when messages were last sent, preventing duplicates
+- **Smart Timing**: Checks every 5 minutes (configurable via `PROACTIVE_CHECK_INTERVAL`) and only sends messages during the exact hour (10:00 or 20:00)
+
+### Configuration
+
+```bash
+# Environment variables for scheduler
+PROACTIVE_CHECK_INTERVAL=300  # Check interval in seconds (default: 5 minutes)
+```
+
+### Firestore Collections
+
+The scheduler uses these Firestore collections:
+
+- `user_settings`: Stores user timezone preferences
+- `proactive_meta`: Tracks last sent dates per user and time slot to prevent duplicates
+  ```json
+  {
+    "morning": "2025-05-25",    // Last date morning message was sent
+    "evening": "2025-05-25",    // Last date evening message was sent
+    "updated_at": "timestamp"
+  }
+  ```
+
+### Deployment
+
+The scheduler runs as a separate Cloud Run service built from `Dockerfile.scheduler`. It operates independently from the main bot service and continuously monitors all users for proactive message opportunities.
 
 ## Local Development & Testing
 
@@ -205,14 +265,17 @@ The script also supports reading these values from environment variables: `TELEG
 │   ├── error_middleware.py    # Global error handling middleware
 │   └── retry_utils.py         # Utilities for API call retries
 ├── scripts/                   # Utility scripts
-│   └── set_webhook.py         # Script to register Telegram webhook
+│   ├── set_webhook.py         # Script to register Telegram webhook
+│   └── proactive_messages.py  # Universal proactive message scheduler
 ├── tests/                     # Automated tests
 │   ├── test_health.py
 │   ├── test_webhook_flow.py
 │   ├── test_history_rotation.py
+│   ├── test_proactive_schedule.py  # Proactive scheduler tests
 │   └── test_container.py      # Docker container tests
 ├── config.py                  # Environment and configuration management
-├── Dockerfile                 # Container definition
+├── Dockerfile                 # Container definition for main bot service
+├── Dockerfile.scheduler       # Container definition for proactive scheduler
 ├── requirements.txt           # Python dependencies
 ├── .env.example               # Example environment variables template
 └── .env                       # Actual environment variables (not committed)

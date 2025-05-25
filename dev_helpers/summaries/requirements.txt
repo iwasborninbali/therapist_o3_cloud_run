@@ -1,4 +1,4 @@
-hash:996f5947c929016aa3e3bcbd8c5ae001a3a6a08fe63ee88d79577e4c2d1f079f
-path:requirements.txt | source:requirements.txt | lastUpdated:2025-05-23T20:36:31.516736 | lines:17
+hash:3fb8dddf67a7d817f80dc9bc9944acfc3bc2fd4decb938cee6efe099748d2c86
+path:requirements.txt | source:requirements.txt | lastUpdated:2025-05-25T16:19:02.106968 | lines:17
 
-This `requirements.txt` file lists Python dependencies for a project. It includes libraries for building a Telegram bot (`python-telegram-bot`) and interacting with Google Cloud Firestore (`google-cloud-firestore`) for data storage. The project leverages AI capabilities through OpenAI and Google Generative AI (`openai`, `google-generativeai`). It likely includes a web API built with FastAPI (`fastapi`) and features scheduled tasks (`schedule`). Development dependencies for testing and Docker are also listed.
+This `requirements.txt` file lists the Python dependencies for a project. It includes libraries for building a web API using FastAPI and Uvicorn. The project integrates with external services such as the Telegram Bot API and Google Cloud Firestore for data storage. It also utilizes AI models from OpenAI and Google Generative AI. Development dependencies for testing and other utilities are also specified.

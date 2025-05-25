@@ -39,7 +39,11 @@ This guide explains how to deploy the application locally while GitHub Actions b
 
 2. **Run deployment script:**
    ```bash
+   # Full deployment (updates image and environment variables)
    ./scripts/local_deploy.sh
+   
+   # Image-only deployment (keeps existing environment variables)
+   ./scripts/local_deploy.sh --skip-env-vars
    ```
 
 ## What the script does:
@@ -48,8 +52,13 @@ This guide explains how to deploy the application locally while GitHub Actions b
 2. ✅ Builds Docker image
 3. ✅ Pushes to Google Artifact Registry
 4. ✅ Deploys to Cloud Run
-5. ✅ Configures Telegram webhook
+5. ✅ Configures Telegram webhook (if env vars updated)
 6. ✅ Outputs service URL
+
+## Deployment Options:
+
+- **Full deployment** (default): Updates both Docker image and environment variables
+- **Image-only deployment** (`--skip-env-vars`): Only updates the Docker image, preserves existing environment variables in Cloud Run. Use this when you only want to deploy code changes without modifying service configuration.
 
 ## Manual Steps (if script fails):
 

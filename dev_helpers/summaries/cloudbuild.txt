@@ -1,0 +1,4 @@
+hash:e25e38ccd0972f2b5df33a7d8f6b4b76b35aa4b1c622409d4de2371a4604f95e
+path:cloudbuild.yaml | source:cloudbuild.yaml | lastUpdated:2025-05-25T16:32:28.433616 | lines:119
+
+This `cloudbuild.yaml` file defines a CI/CD pipeline for two services, `therapist-bot` and `therapist-scheduler`, using Google Cloud Build. It orchestrates the process of building Docker images for both services, tagging them with commit SHA and 'latest'. The built images are then pushed to Google Artifact Registry. Finally, it deploys both services to Google Cloud Run in the `us-central1` region and sets a webhook for the bot service after deployment.

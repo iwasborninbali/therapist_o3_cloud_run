@@ -1,0 +1,4 @@
+hash:31b72342d162ef9d067fa297d8764197809652696f3cb58e14faed09f9186d79
+path:LOCAL_DEPLOY.md | source:LOCAL_DEPLOY.md | lastUpdated:2025-05-25T15:12:30.089078 | lines:102
+
+This document provides a guide for deploying the application locally to Google Cloud Run as a temporary workaround for GitHub Actions billing issues. It outlines prerequisites including Google Cloud CLI and Docker installation, and setting necessary environment variables for API keys and Firebase credentials. The guide primarily uses a `local_deploy.sh` script to automate building the Docker image, pushing it to Google Artifact Registry, and deploying it to Cloud Run. Manual steps and troubleshooting tips are also included for deploying the image and configuring the Telegram webhook.

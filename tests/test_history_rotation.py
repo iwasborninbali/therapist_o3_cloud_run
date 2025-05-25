@@ -106,8 +106,8 @@ def test_manage_history_below_threshold(mock_summarize, mock_get_history, mock_c
 
 
 # Patch the db instance used by _ensure_max_summaries
-@patch('bot.history_manager.db')
-def test_ensure_max_summaries_deletes_oldest(mock_db, mock_config):
+@patch('bot.history_manager.get_db')
+def test_ensure_max_summaries_deletes_oldest(mock_get_db, mock_config):
     user_id = "test_user_3"
     # MAX_SUMMARIES is 5
     # Create 6 mock summary documents that stream() would return
@@ -143,6 +143,9 @@ def test_ensure_max_summaries_deletes_oldest(mock_db, mock_config):
     mock_user_doc = MagicMock()
     mock_user_doc.collection.return_value = mock_collection
 
+    mock_db = MagicMock()
+    mock_get_db.return_value = mock_db
+    
     mock_db.collection.return_value.document.return_value = mock_user_doc
 
     mock_batch = MagicMock()
@@ -161,12 +164,12 @@ def test_ensure_max_summaries_deletes_oldest(mock_db, mock_config):
     mock_batch.commit.assert_called_once()
 
 
-@patch('bot.history_manager.db')
+@patch('bot.history_manager.get_db')
 @patch('bot.history_manager.get_history')  # Mock this to prevent actual calls
 @patch('bot.history_manager.add_summary')  # Mock this
 @patch('bot.history_manager.summarize')   # Mock this
 @patch('bot.history_manager._ensure_max_summaries')  # Mock this
-def test_delete_messages_from_firestore(mock_ensure, mock_summarize, mock_add_summary, mock_get_history, mock_db_in_hm, mock_config):
+def test_delete_messages_from_firestore(mock_ensure, mock_summarize, mock_add_summary, mock_get_history, mock_get_db_in_hm, mock_config):
     user_id = "test_user_delete"
     # Setup: Create two messages to be "deleted"
     messages_to_delete = [
@@ -183,8 +186,11 @@ def test_delete_messages_from_firestore(mock_ensure, mock_summarize, mock_add_su
     mock_summarize.return_value = "summary of deleted"
 
     # Mock Firestore batch operations for _delete_messages_from_firestore
+    mock_db = MagicMock()
+    mock_get_db_in_hm.return_value = mock_db
+    
     mock_batch = MagicMock()
-    mock_db_in_hm.batch.return_value = mock_batch
+    mock_db.batch.return_value = mock_batch
 
     mock_history_collection = MagicMock()
     mock_doc_ref1 = MagicMock()
@@ -201,7 +207,7 @@ def test_delete_messages_from_firestore(mock_ensure, mock_summarize, mock_add_su
 
     mock_user_history_doc = MagicMock()
     mock_user_history_doc.collection.return_value = mock_history_collection
-    mock_db_in_hm.collection.return_value.document.return_value = mock_user_history_doc
+    mock_db.collection.return_value.document.return_value = mock_user_history_doc
 
     # Call manage_history, which should internally call _delete_messages_from_firestore
     # We are specifically testing the deletion part here, so the call to _delete_messages_from_firestore is *not* mocked.
@@ -213,11 +219,11 @@ def test_delete_messages_from_firestore(mock_ensure, mock_summarize, mock_add_su
         assert wrapped_delete_spy.called
 
         # Check if db.collection("history").document(user_id).collection("messages") was accessed
-        mock_db_in_hm.collection.assert_any_call("history")
+        mock_db.collection.assert_any_call("history")
         mock_user_history_doc.collection.assert_called_with("messages")
 
         # Check if batch operations were called correctly
-        mock_db_in_hm.batch.assert_called_once()
+        mock_db.batch.assert_called_once()
         calls_to_batch_delete = [
             call(mock_doc_ref1),
             call(mock_doc_ref2)

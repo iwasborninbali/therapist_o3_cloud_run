@@ -1,0 +1,53 @@
+2025-05-25 16:56:08,090 - INFO - Final query sent to Perplexity AI:
+Google Cloud Build GitHub connection created but repositories list is empty. How to access GitHub repositories through gcloud alpha builds repositories list after successful GitHub OAuth authorization?
+2025-05-25 16:56:30,900 - INFO - Perplexity research result:
+After successfully authorizing GitHub OAuth for Google Cloud Build, empty repository listings typically occur due to incomplete repository connections or permission issues. Here's how to resolve this:
+
+### Critical Missing Steps
+1. **Install GitHub App on repositories**  
+   OAuth authorization alone doesn't grant access - you must:
+   ```bash
+   # From Cloud Console
+   gcloud alpha builds connections create github \
+     --region=REGION \
+     --authorizer-token-secret-version=latest \
+     --app-installation-id=INSTALLATION_ID
+   ```
+   Replace `REGION` and `INSTALLATION_ID` from your GitHub settings[3][5].
+
+2. **Repository Access Configuration**  
+   For existing connections:
+   ```bash
+   gcloud alpha builds repositories list \
+     --project=PROJECT_ID \
+     --region=REGION \
+     --connection=CONNECTION_NAME
+   ```
+   Ensure connection uses **2nd gen** infrastructure[3].
+
+### Common Fixes
+**Permissions Checklist:**
+```markdown
+- `Cloud Build Service Agent` role required
+- Secret Manager access for GitHub token
+- GitHub App installed on target repositories[3][5]
+```
+
+**Troubleshooting Table**
+| Symptom | Solution |
+|---------|----------|
+| Empty list despite OAuth | Complete repository mapping in Console[5] |
+| Permission denied | Add `roles/secretmanager.secretAccessor` to build service account[3] |
+| Wrong region | Specify `--region` matching connection location |
+| Legacy infrastructure | Switch to 2nd gen using `--gen2` flag |
+
+**CLI Command Template:**
+```bash
+gcloud alpha builds repositories list \
+  --project=YOUR_PROJECT_ID \
+  --region=CONNECTION_REGION \
+  --connection=CONNECTION_NAME \
+  --gen2
+```
+
+If repositories still don't appear, reinstall the GitHub App and verify repository access in [GitHub > Settings > Applications](https://github.com/settings/installations)[2][5].

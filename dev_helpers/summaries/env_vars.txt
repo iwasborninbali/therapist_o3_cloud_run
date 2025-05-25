@@ -1,0 +1,4 @@
+hash:ac29731d2a630c5d0a36405f4f18dfd61644d1e4b20728b86266282cc3749813
+path:env_vars.yaml | source:env_vars.yaml | lastUpdated:2025-05-25T15:56:36.945176 | lines:18
+
+This YAML file stores environment variables for an application. It primarily contains API keys and service credentials required to interact with external services. Key variables include the full Firebase service account credentials (`FIREBASE_CRED_JSON`) and project ID, a Telegram bot token, an OpenAI API key, and a Gemini API key. Its purpose is to centralize sensitive configuration data needed by the application.

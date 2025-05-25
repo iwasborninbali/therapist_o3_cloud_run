@@ -34,6 +34,16 @@
       "description": "Manages conversation history, triggers summarization, and stores summaries"
     },
     {
+      "name": "scripts.proactive_messages",
+      "path": "scripts/proactive_messages.py",
+      "description": "Universal proactive message scheduler with per-user timezone support"
+    },
+    {
+      "name": "scripts.set_webhook",
+      "path": "scripts/set_webhook.py",
+      "description": "Script to register Telegram webhook"
+    },
+    {
       "name": "config",
       "path": "config.py",
       "description": "Environment and configuration management"
@@ -46,11 +56,19 @@
     },
     {
       "name": "summaries",
-      "description": "Stores summarized conversation chunks (max 3 per user)"
+      "description": "Stores summarized conversation chunks (max 5 per user)"
     },
     {
       "name": "system_prompts",
       "description": "Stores customized system prompts by user ID"
+    },
+    {
+      "name": "user_settings",
+      "description": "Stores user preferences including timezone settings"
+    },
+    {
+      "name": "proactive_meta",
+      "description": "Tracks last sent dates for proactive messages to prevent duplicates"
     }
   ],
   "dependencies": [
@@ -61,6 +79,25 @@
     "python-dotenv",
     "fastapi",
     "uvicorn",
-    "pydantic"
+    "pydantic",
+    "pytz",
+    "requests"
+  ],
+  "architecture_decisions": [
+    {
+      "id": "ADR-0001",
+      "title": "Use Firebase Firestore for Data Storage",
+      "path": "docs/ADR-0001-firestore-storage.md"
+    },
+    {
+      "id": "ADR-0002", 
+      "title": "Dual Service Deployment Strategy",
+      "path": "docs/ADR-0002-dual-service-deployment.md"
+    },
+    {
+      "id": "ADR-0003",
+      "title": "Keep Proactive Scheduler in a Dedicated Cloud Run Service", 
+      "path": "docs/ADR-0003-scheduler-as-separate-service.md"
+    }
   ]
 } 

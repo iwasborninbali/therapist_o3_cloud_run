@@ -1,6 +1,6 @@
 import logging
-# Assuming db is the firestore client instance
-from bot.firestore_client import get_history, add_summary, db
+# Import get_db function instead of db directly
+from bot.firestore_client import get_history, add_summary, get_db
 from bot.summarizer import summarize
 from config import config
 # Add this if not already present at the top, ensuring it's available for _ensure_max_summaries
@@ -96,6 +96,7 @@ def _delete_messages_from_firestore(user_id: str, messages_to_delete: list):
         return
 
     try:
+        db = get_db()  # Get the initialized db instance
         history_collection_ref = db.collection("history").document(
             user_id).collection("messages")
         batch = db.batch()
@@ -136,6 +137,7 @@ def _ensure_max_summaries(user_id: str):
     Ensures stored summaries for a user don't exceed MAX_SUMMARIES (FIFO).
     """
     try:
+        db = get_db()  # Get the initialized db instance
         summaries_collection_ref = db.collection("summaries").document(
             user_id).collection("items")
         all_summaries_query = summaries_collection_ref.order_by(

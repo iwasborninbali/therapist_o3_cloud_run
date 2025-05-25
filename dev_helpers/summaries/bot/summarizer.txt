@@ -1,4 +1,4 @@
-hash:4337cee54f60a5f2a907e749d5837609267d3056d3f32bf6622e5b3f842b63d9
-path:bot/summarizer.py | source:bot/summarizer.py | lastUpdated:2025-05-21T13:19:30.824481 | lines:44
+hash:20b7da85d0b0b760705aac46a02938da745ef819d7fb8274afd625efc1e739e1
+path:bot/summarizer.py | source:bot/summarizer.py | lastUpdated:2025-05-25T13:57:24.112065 | lines:63
 
-This file, `summarizer.py`, is intended to provide functionality for summarizing conversation messages using the Google Gemini API. It initializes the `google.generativeai` library with an API key from a configuration module. The main function, `summarize`, is designed to take a list of message strings and return a summary. However, the current implementation is a placeholder stub that simply reports the number of messages and provides a preview of the first few, with a TODO indicating future full Gemini integration.
+This file, `summarizer.py`, provides functionality to summarize conversation messages using the Google Gemini API. It configures the API with a key from `config.py`. The main function, `summarize`, takes a list of message strings, formats them into a prompt (in Russian) requesting a concise summary, and sends it to the 'gemini-2.5-pro' model. It returns the generated summary text or an error message if the API call fails.

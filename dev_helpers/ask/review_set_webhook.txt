@@ -1,9 +1,0 @@
-Review scripts/set_webhook.py
-
-Please verify that this script:
-1. Exits with non-zero status code on failure
-2. Has proper `if __name__ == "__main__": main()` structure
-3. Has appropriate error handling and logging
-4. Returns proper exit codes for success/failure scenarios
-
-Context: This script is used in CI/CD pipeline and needs to fail builds if webhook setup fails. 

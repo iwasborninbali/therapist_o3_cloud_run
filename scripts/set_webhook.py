@@ -25,6 +25,10 @@ def set_telegram_webhook(bot_token: str, service_url: str, secret_token: str = N
     Returns:
         bool: True if successful, False otherwise.
     """
+    # Ensure the webhook URL points to the correct endpoint
+    if not service_url.endswith('/webhook'):
+        service_url = service_url.rstrip('/') + '/webhook'
+    
     telegram_api_url = f"https://api.telegram.org/bot{bot_token}/setWebhook"
     payload = {"url": service_url}
     if secret_token:

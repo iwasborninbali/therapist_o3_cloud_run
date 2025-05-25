@@ -361,3 +361,62 @@ def generate_timestamp_info(user_id):
     except Exception as e:
         logger.error(f"Error generating timestamp info for user {user_id}: {str(e)}")
         return f"Текущее время: ошибка получения времени"
+
+
+@retry_sync()
+def get_last_proactive_meta(user_id):
+    """
+    Get the last proactive message metadata for a user.
+    
+    Args:
+        user_id (str): The user's Telegram ID
+        
+    Returns:
+        dict: Metadata with 'morning' and 'evening' last sent dates, or empty dict
+    """
+    try:
+        current_db = get_db()
+        meta_ref = current_db.collection("proactive_meta").document(user_id)
+        meta_doc = meta_ref.get()
+        
+        if meta_doc.exists:
+            return meta_doc.to_dict()
+        return {}
+        
+    except Exception as e:
+        logger.error(f"Error getting proactive meta for user {user_id}: {str(e)}")
+        return {}
+
+
+@retry_sync()
+def set_last_proactive_meta(user_id, slot, date_iso):
+    """
+    Set the last proactive message date for a specific slot.
+    
+    Args:
+        user_id (str): The user's Telegram ID
+        slot (str): Either 'morning' or 'evening'
+        date_iso (str): Date in ISO format (YYYY-MM-DD)
+        
+    Returns:
+        bool: Success status
+    """
+    try:
+        current_db = get_db()
+        meta_ref = current_db.collection("proactive_meta").document(user_id)
+        
+        # Get existing metadata or create new
+        existing_meta = get_last_proactive_meta(user_id) or {}
+        
+        # Update the specific slot
+        existing_meta[slot] = date_iso
+        existing_meta["updated_at"] = datetime.utcnow()
+        
+        meta_ref.set(existing_meta)
+        
+        logger.debug(f"Set proactive meta for user {user_id}, slot {slot}: {date_iso}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error setting proactive meta for user {user_id}: {str(e)}")
+        return False

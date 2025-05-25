@@ -1,0 +1,119 @@
+steps:
+  # Build the main bot service image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/therapist-o3/therapist-bot:$COMMIT_SHA',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/therapist-o3/therapist-bot:latest',
+      '-f', 'Dockerfile',
+      '.'
+    ]
+    id: 'build-bot'
+
+  # Build the scheduler service image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/therapist-o3/therapist-scheduler:$COMMIT_SHA',
+      '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/therapist-o3/therapist-scheduler:latest',
+      '-f', 'Dockerfile.scheduler',
+      '.'
+    ]
+    id: 'build-scheduler'
+
+  # Push the bot image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      'us-central1-docker.pkg.dev/$PROJECT_ID/therapist-o3/therapist-bot:$COMMIT_SHA'
+    ]
+    waitFor: ['build-bot']
+    id: 'push-bot'
+
+  # Push the bot latest tag
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      'us-central1-docker.pkg.dev/$PROJECT_ID/therapist-o3/therapist-bot:latest'
+    ]
+    waitFor: ['build-bot']
+    id: 'push-bot-latest'
+
+  # Push the scheduler image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      'us-central1-docker.pkg.dev/$PROJECT_ID/therapist-o3/therapist-scheduler:$COMMIT_SHA'
+    ]
+    waitFor: ['build-scheduler']
+    id: 'push-scheduler'
+
+  # Push the scheduler latest tag
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      'us-central1-docker.pkg.dev/$PROJECT_ID/therapist-o3/therapist-scheduler:latest'
+    ]
+    waitFor: ['build-scheduler']
+    id: 'push-scheduler-latest'
+
+  # Deploy the main bot service to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: [
+      'run', 'deploy', 'therapist-o3',
+      '--image', 'us-central1-docker.pkg.dev/$PROJECT_ID/therapist-o3/therapist-bot:$COMMIT_SHA',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--memory', '1Gi',
+      '--cpu', '1',
+      '--max-instances', '10',
+      '--set-env-vars', 'TESTING=False'
+    ]
+    waitFor: ['push-bot']
+    id: 'deploy-bot'
+
+  # Deploy the scheduler service to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: [
+      'run', 'deploy', 'therapist-scheduler',
+      '--image', 'us-central1-docker.pkg.dev/$PROJECT_ID/therapist-o3/therapist-scheduler:$COMMIT_SHA',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--no-allow-unauthenticated',
+      '--memory', '512Mi',
+      '--cpu', '0.5',
+      '--max-instances', '1',
+      '--min-instances', '1',
+      '--set-env-vars', 'TESTING=False'
+    ]
+    waitFor: ['push-scheduler']
+    id: 'deploy-scheduler'
+
+  # Set webhook after successful bot deployment
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Get the service URL
+        SERVICE_URL=$(gcloud run services describe therapist-o3 --region=us-central1 --format="value(status.url)")
+        echo "Service URL: $SERVICE_URL"
+        
+        # Set the webhook using Python script
+        python3 scripts/set_webhook.py --url "$SERVICE_URL/webhook"
+    waitFor: ['deploy-bot']
+    id: 'set-webhook'
+
+# Build options
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+# Timeout for the entire build
+timeout: '1200s'
+
+# Substitutions for environment variables
+substitutions:
+  _REGION: 'us-central1'
+  _REPOSITORY: 'therapist-o3' 

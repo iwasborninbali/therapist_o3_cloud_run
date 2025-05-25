@@ -27,9 +27,16 @@ jobs:
 
       - name: Check for prohibited artifacts
         run: |
-          if grep -R --line-number -E '"private_key"' ./*.json bot scripts 2>/dev/null || test -e firebase.json || test -d functions; then
-            echo "❌ Credential artefacts detected"; exit 1
+          if find . -name "*.json" -not -path "./.git/*" -exec grep -l '"private_key"' {} \; 2>/dev/null | head -1; then
+            echo "❌ Credential artefacts detected in build context:"
+            find . -name "*.json" -not -path "./.git/*" -exec grep -l '"private_key"' {} \;
+            echo "These files should be in .dockerignore to prevent inclusion in Docker image"
+            exit 1
           fi
+          if test -e firebase.json || test -d functions; then
+            echo "❌ Firebase config files detected"; exit 1
+          fi
+          echo "✅ No credential artifacts found in build context"
 
       - name: Authenticate to Google Cloud
         id: auth
@@ -70,9 +77,16 @@ jobs:
 
       - name: Check for prohibited artifacts
         run: |
-          if grep -R --line-number -E '"private_key"' ./*.json bot scripts 2>/dev/null || test -e firebase.json || test -d functions; then
-            echo "❌ Credential artefacts detected"; exit 1
+          if find . -name "*.json" -not -path "./.git/*" -exec grep -l '"private_key"' {} \; 2>/dev/null | head -1; then
+            echo "❌ Credential artefacts detected in build context:"
+            find . -name "*.json" -not -path "./.git/*" -exec grep -l '"private_key"' {} \;
+            echo "These files should be in .dockerignore to prevent inclusion in Docker image"
+            exit 1
           fi
+          if test -e firebase.json || test -d functions; then
+            echo "❌ Firebase config files detected"; exit 1
+          fi
+          echo "✅ No credential artifacts found in build context"
 
       - name: Authenticate to Google Cloud
         id: auth

@@ -6,11 +6,18 @@
 # Google Cloud / Service Account Credentials
 *adminsdk*.json
 *service-account*.json
+*service-account*key.json
 *deployer*-key.json
+firebase-service-account-key.json
+*firebase*adminsdk*.json
 *-sa.json
 *.private.*json
 credentials.json
 serviceAccountKey.json
+
+# Encrypted credentials (security)
+*creds_encrypted*.bin
+*.bin
 
 # Python
 __pycache__/
