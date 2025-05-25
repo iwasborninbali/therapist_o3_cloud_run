@@ -1,25 +1,30 @@
-name: Deploy to Cloud Run
+name: Manual Deploy to Cloud Run
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
       reason:
-        description: 'Reason for manual deployment'
+        description: 'Reason for deployment'
         required: false
         default: 'Manual deployment'
 
 permissions:
   contents: read
-  id-token: write # Required for authentication to Google Cloud
+  id-token: write
 
 jobs:
-  build-and-push-to-gcr:
-    name: Build and Push to Artifact Registry
+  manual-deploy:
+    name: Manual Deploy
     runs-on: ubuntu-latest
-    environment: production # Optional: if you have a GitHub environment for production secrets
+    environment: production
 
     steps:
       - name: Checkout repository
@@ -35,8 +40,7 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }} # Service Account Key
-          # workload_identity_provider: 'projects/YOUR_PROJECT_ID/locations/global/workloadIdentityPools/YOUR_POOL_ID/providers/YOUR_PROVIDER_ID' # Alternative: Workload Identity Federation
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
@@ -58,38 +62,12 @@ jobs:
           docker push $IMAGE_NAME:${{ github.sha }}
           docker push $IMAGE_NAME:latest
 
-  deploy-to-cloud-run:
-    name: Deploy to Cloud Run
-    needs: build-and-push-to-gcr
-    runs-on: ubuntu-latest
-    environment: production # Optional: if you have a GitHub environment for production secrets
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Check for prohibited artifacts
-        run: |
-          if grep -R --line-number -E '"private_key"' ./*.json bot scripts 2>/dev/null || test -e firebase.json || test -d functions; then
-            echo "❌ Credential artefacts detected"; exit 1
-          fi
-
-      - name: Authenticate to Google Cloud
-        id: auth
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }} # Service Account Key
-          # workload_identity_provider: 'projects/YOUR_PROJECT_ID/locations/global/workloadIdentityPools/YOUR_POOL_ID/providers/YOUR_PROVIDER_ID' # Alternative: Workload Identity Federation
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-
       - name: Deploy to Cloud Run
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          service: ${{ secrets.CLOUD_RUN_SERVICE_NAME }} # Name of the Cloud Run service (TELEGRAM-AI)
-          region: ${{ secrets.CLOUD_RUN_REGION }} # Region of the Cloud Run service (us-central1)
+          service: ${{ secrets.CLOUD_RUN_SERVICE_NAME }}
+          region: ${{ secrets.CLOUD_RUN_REGION }}
           image: ${{ secrets.CLOUD_RUN_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.DOCKER_REGISTRY_REPO }}/${{ secrets.CLOUD_RUN_SERVICE_NAME }}:${{ github.sha }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           env_vars: |
@@ -98,26 +76,31 @@ jobs:
             FIREBASE_CRED_JSON='${{ secrets.FIREBASE_CRED_JSON }}'
             FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
             GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
-          flags: --min-instances=0 --allow-unauthenticated # Set min-instances and allow unauthenticated access
+          flags: --min-instances=0 --allow-unauthenticated
 
       - name: Output Deployed URL
         run: |
-          echo "Deployed to: ${{ steps.deploy.outputs.url }}"
-
-      - name: Run flake8 (non-blocking)
-        run: flake8 . || echo "flake8 warnings ignored (internal project)"
+          echo "🚀 Deployed to: ${{ steps.deploy.outputs.url }}"
+          echo "📝 Reason: ${{ github.event.inputs.reason }}"
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11' # Or your project's Python version
+          python-version: '3.11'
 
       - name: Install dependencies for webhook script
-        run: pip install -r requirements.txt # Assuming requests is in requirements.txt
+        run: pip install -r requirements.txt
 
       - name: Run set_webhook.py script
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          SERVICE_URL: ${{ steps.deploy.outputs.url }} # Use the deployed service URL from the previous step
+          SERVICE_URL: ${{ steps.deploy.outputs.url }}
         run: |
-          python scripts/set_webhook.py 
+          python scripts/set_webhook.py
+
+      - name: Deployment Summary
+        run: |
+          echo "✅ Manual deployment completed successfully!"
+          echo "🌐 Service URL: ${{ steps.deploy.outputs.url }}"
+          echo "📝 Deployment reason: ${{ github.event.inputs.reason }}"
+          echo "🏷️ Environment: ${{ github.event.inputs.environment }}" 
