@@ -1,4 +1,4 @@
-hash:6542b0c2cda95fb76a49846aed0cccb13022fafb6916e3f87d5d395b0a28299e
-path:config.py | source:config.py | lastUpdated:2025-05-25T16:26:41.867040 | lines:226
+hash:912df53108dbda901d2cb6b55b84c69d121e0932c7b5f7c26c5d35c50ab6c67d
+path:config.py | source:config.py | lastUpdated:2025-05-25T18:59:52.151250 | lines:238
 
-This `config.py` file manages application settings by loading environment variables from a `.env` file and configuring basic logging. It includes special handling for Firebase credentials, writing JSON content to a temporary file if the `FIREBASE_CRED_JSON` variable is set. A `Config` class encapsulates various settings for services like Telegram, OpenAI, and Gemini, along with application parameters, and provides a method to validate their presence. Finally, it defines a comprehensive `DEFAULT_SYSTEM_PROMPT` outlining the role and guidelines for an AI therapist.
+This `config.py` file manages application configuration by loading settings from environment variables, including a `.env` file. It includes specific logic to handle Firebase credentials, prioritizing Cloud Run service identity or using environment variables for local development. A `Config` class structures various settings like API keys, Firebase details, and operational parameters. The `Config` class includes a `validate` method to ensure required environment variables are present. The file also defines a large default system prompt for an AI therapist role and constants for proactive messaging features.

@@ -1,4 +1,4 @@
-hash:3b53500dc8bdb1f8df9310bbbd8d50a849254ca8688363d691727efc73d7b364
-path:scripts/test_proactive.py | source:scripts/test_proactive.py | lastUpdated:2025-05-23T20:36:45.608852 | lines:19
+hash:a0dda07d61852ceb5f8640bc1f5aa44c6d5eec371c60f9fc359a4cc87b5eb2ad
+path:scripts/test_proactive.py | source:scripts/test_proactive.py | lastUpdated:2025-05-25T19:02:25.759107 | lines:164
 
-This Python script `test_proactive.py` serves as a simple test runner for sending proactive messages. It imports the `send_proactive_message` function from a project script. When executed, it immediately calls this function to send a single test proactive message.
+This Python script `test_proactive.py` is designed to test the proactive message functionality of a bot. It verifies user timezone settings and retrieves users with configured timezones from Firestore. The script tests the core logic (`should_send_proactive_message`) by temporarily setting the configured proactive hours (like `config.MORNING_HOUR`) to the user's current local hour to force a test condition. It logs whether a message should be sent and attempts to generate a test message.

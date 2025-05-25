@@ -1,0 +1,4 @@
+hash:ac3bdbe172f868fac81adcb0b21b5614e7e56e1a483e0082898c241328d123a0
+path:scripts/build_and_deploy.sh | source:scripts/build_and_deploy.sh | lastUpdated:2025-05-25T18:59:52.165789 | lines:69
+
+This shell script automates the process of building a Docker image and deploying it to Google Cloud Run. It configures Google Cloud Platform (GCP) project, region, and service details, then checks for necessary tools like the `gcloud` CLI. The script builds the Docker image locally, pushes it to Google Artifact Registry, and deploys this image to the specified Cloud Run service. A notable aspect is that it deploys only the image, explicitly preserving any existing environment variables on the Cloud Run service from previous deployments. Upon success, it outputs the service URL.

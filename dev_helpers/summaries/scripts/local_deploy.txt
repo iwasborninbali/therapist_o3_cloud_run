@@ -1,4 +1,0 @@
-hash:dd38a1f2e4270235f0ada6dfeacd9aa76ab45860f738bd1e6cf509debac02866
-path:scripts/local_deploy.sh | source:scripts/local_deploy.sh | lastUpdated:2025-05-25T15:26:14.361767 | lines:161
-
-This script automates the local deployment of an application to Google Cloud Run. It builds a Docker image from the current directory, pushes it to Google Artifact Registry, and deploys it to a specified Cloud Run service. The script handles setting environment variables, including sensitive API keys and Firebase credentials, with an option to skip updating all variables except Firebase credentials. It checks for `gcloud` authentication and configures Docker for the registry. Finally, it retrieves the service URL and can optionally set a Telegram webhook.

@@ -1,4 +1,4 @@
-hash:96653dd9606c06e3aa18aab7253043a7fa48c31e130859ebd2ae56bc82ca3a24
-path:bot/history_manager.py | source:bot/history_manager.py | lastUpdated:2025-05-25T16:14:50.664505 | lines:164
+hash:f0ea7d40a61cf6607aa2e0fe9113efba112cfbb0632d1d8e1cfb41dfe12b237c
+path:bot/history_manager.py | source:bot/history_manager.py | lastUpdated:2025-05-25T18:59:52.212231 | lines:173
 
-This file, `history_manager.py`, is responsible for managing user conversation history for a bot. Its primary function, `manage_history`, checks if a user's conversation history exceeds a configured message threshold. If the threshold is met, it trims the oldest messages, generates a summary of the trimmed part using an imported `summarize` function, and stores this summary in Firestore. The trimmed messages are then deleted from the database, and helper functions like `_ensure_max_summaries` manage the total number of stored summaries per user.
+This Python file, `history_manager.py`, manages user conversation history for a bot. Its main function, `manage_history`, checks if a user's history exceeds a defined message threshold. If the history is too long, it summarizes the oldest messages using an external summarizer, stores the resulting summary in Firestore, and deletes the trimmed messages from the history collection. It also ensures a maximum number of summaries are stored per user using `_ensure_max_summaries`. This process keeps the active history manageable while preserving context via summaries.
