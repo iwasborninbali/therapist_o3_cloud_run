@@ -1,0 +1,4 @@
+hash:3b5a5ea3746a3a67a275f7051ff26ca6efa77bcb57494cb030a81ba4c9f95af0
+path:tasks/done/04_history_rotation.md | source:tasks/done/04_history_rotation.md | lastUpdated:2025-05-21T13:21:45.077041 | lines:48
+
+This document outlines the implementation of automatic conversation history rotation and summarization. Its main purpose is to manage context length for AI interactions and provide users with concise summaries of past conversations. A new `history_manager.py` module orchestrates this process. When message history exceeds a configured threshold, older messages are summarized, stored as summaries via `firestore_client.py`, and then deleted from the active history. The system also manages a maximum number of summaries using a FIFO approach and is integrated into the `telegram_router.py`.

@@ -1,0 +1,4 @@
+hash:6d18a3ce6d7f75dbd84c09bb7e2fecbc8784dff391770a469a4af376dbddcfad
+path:tasks/done/05_webhook_registration.md | source:tasks/done/05_webhook_registration.md | lastUpdated:2025-05-25T13:46:22.463309 | lines:37
+
+This document outlines the implementation of an automatic webhook registration utility for a Telegram bot. It involves creating a Python script (`scripts/set_webhook.py`) to call the Telegram `setWebhook` API using the bot token and service URL, incorporating retry logic for robustness. The main bot application (`bot/main.py`) is updated to include a root path handler for basic health checks. The `README.md` file is modified to document the script's usage and integration into the deployment process. This setup ensures the bot's webhook is correctly configured automatically after deployment.

@@ -1,0 +1,4 @@
+hash:a9605bcd733cad31c30cc806367878bd60d0747e785660bf7b42d519879f4cec
+path:tasks/done/03_resilience_monitoring.md | source:tasks/done/03_resilience_monitoring.md | lastUpdated:2025-05-21T13:09:22.891383 | lines:38
+
+This file documents the implementation task for enhancing the resilience and monitoring of a Telegram AI Assistant bot. It covers adding robust error handling via a FastAPI middleware and implementing retry mechanisms with exponential backoff for external API calls (Telegram, OpenAI) and database operations (Firestore). The task also involved making retry parameters configurable and adding monitoring documentation to the README. Key components include `error_middleware.py` and `retry_utils.py`.

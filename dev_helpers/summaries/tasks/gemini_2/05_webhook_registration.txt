@@ -1,4 +1,0 @@
-hash:6d18a3ce6d7f75dbd84c09bb7e2fecbc8784dff391770a469a4af376dbddcfad
-path:tasks/gemini_2/05_webhook_registration.md | source:tasks/gemini_2/05_webhook_registration.md | lastUpdated:2025-05-22T22:45:20.503556 | lines:37
-
-This document details the implementation of a utility for automatic Telegram bot webhook registration. A new Python script (`scripts/set_webhook.py`) is created to call the Telegram `setWebhook` API using the bot token and service URL provided via arguments or environment variables. This script includes retry logic for API calls and error handling. The main bot application (`bot/main.py`) is updated with a simple handler for the root path (`/`) to provide a basic status response. Documentation in `README.md` is updated to cover the script's usage and deployment integration.
