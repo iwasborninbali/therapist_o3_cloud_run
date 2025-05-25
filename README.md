@@ -259,4 +259,4 @@ The application includes several resilience mechanisms:
 - Global error middleware to ensure graceful failure handling
 - Standardized error responses that maintain compatibility with Telegram's API 
 
-<!-- Trigger CI/CD --> 
+<!-- Trigger CI/CD --> # Test deploy with all secrets configured
