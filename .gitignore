@@ -58,3 +58,4 @@ Thumbs.db
 # Firebase Functions artifacts
 /functions/
 firebase.json github-deployer-key.json
+env_vars.yaml
