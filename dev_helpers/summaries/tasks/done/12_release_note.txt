@@ -1,0 +1,4 @@
+hash:d1fa59fd2e2a18c9b6b9899bd37b01cc12f72b8de1236cfc542a04e757e8c753
+path:tasks/done/12_release_note.md | source:tasks/done/12_release_note.md | lastUpdated:2025-05-25T19:13:05.536579 | lines:53
+
+This document is a release note for version 0.1.0 of the Telegram AI Assistant, marking its first production release. It details the implementation of key features including a proactive messaging system with timezone support and conversation management with automatic history rotation and summarization. The release also incorporates enhanced security through service identities and improved resilience with robust error handling and retry mechanisms. The system is deployed using Cloud Run and Firebase. The status of this release task is marked as 'done'.

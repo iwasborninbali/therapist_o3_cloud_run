@@ -53,6 +53,11 @@
       "path": "scripts/build_and_deploy.sh", 
       "description": "Builds Docker image and deploys to Cloud Run without modifying environment variables"
     },
+    {
+      "name": "scripts.build_and_deploy_scheduler",
+      "path": "scripts/build_and_deploy_scheduler.sh",
+      "description": "Builds and deploys therapist-scheduler service with same configuration as main bot"
+    },
 
     {
       "name": "config",

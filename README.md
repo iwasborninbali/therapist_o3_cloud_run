@@ -140,6 +140,21 @@ The scheduler uses these Firestore collections:
 
 The scheduler runs as a separate Cloud Run service built from `Dockerfile.scheduler`. It operates independently from the main bot service and continuously monitors all users for proactive message opportunities.
 
+#### Scheduler Hot-fix Deploy
+
+To deploy the scheduler service manually:
+
+```bash
+# Deploy scheduler with same configuration as main bot
+./scripts/build_and_deploy_scheduler.sh
+```
+
+This script:
+- Builds Docker image from `Dockerfile.scheduler`
+- Copies environment variables from the main `therapist-o3` service
+- Deploys with `min-instances=1` for continuous operation
+- Uses the same service account for Firebase authentication
+
 ## Local Development & Testing
 
 ### Local Smoke Test

@@ -1,0 +1,4 @@
+hash:b2bdf6db18a219e3fd235ebe8085d3abda3975b3706e8c85af179ebced1eefed
+path:CHANGELOG.md | source:CHANGELOG.md | lastUpdated:2025-05-25T19:13:21.550175 | lines:54
+
+This file is the changelog for the Telegram AI Assistant project, documenting notable changes following Keep a Changelog and Semantic Versioning. Version 0.1.0 details significant updates across several areas. Key additions include a Proactive Messaging System supporting user timezones and a Conversation Management system with automatic history summarization using Gemini 2.5 Pro. Security was enhanced through service identity implementation, removing explicit credentials. The update also improved resilience with error handling and established a dual-service deployment architecture using Cloud Run and Firebase.

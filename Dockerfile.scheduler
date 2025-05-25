@@ -4,9 +4,10 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies for Python package compilation
 RUN apt-get update && apt-get install -y \
     gcc \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
@@ -20,5 +21,5 @@ COPY . .
 ENV PYTHONPATH=/app
 ENV TZ=Asia/Makassar
 
-# Run the scheduler
-CMD ["python", "scripts/proactive_messages.py"] 
+# Run the scheduler with health server
+CMD ["python", "scripts/proactive_messages_with_server.py"] 
