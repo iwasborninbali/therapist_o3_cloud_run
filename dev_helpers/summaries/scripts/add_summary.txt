@@ -1,0 +1,4 @@
+hash:dfb11c1f8d9645c4830d109e83596f9d3672ed3f3cef54db48ae82eec0a82701
+path:scripts/add_summary.py | source:scripts/add_summary.py | lastUpdated:2025-05-23T20:30:33.311244 | lines:77
+
+This Python script uploads a summary from a specified text file to Firebase Firestore. It takes the filename as a command-line argument, which must follow the format `summary_<user_id>.txt`. The script extracts the user ID from the filename and reads the summary content from the file. It then calls an imported function (`add_summary`) to save this data to Firebase. The script includes checks for file existence, filename format, and successful data addition.

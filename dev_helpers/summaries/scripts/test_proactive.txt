@@ -1,0 +1,4 @@
+hash:3b53500dc8bdb1f8df9310bbbd8d50a849254ca8688363d691727efc73d7b364
+path:scripts/test_proactive.py | source:scripts/test_proactive.py | lastUpdated:2025-05-23T20:36:45.608852 | lines:19
+
+This Python script `test_proactive.py` serves as a simple test runner for sending proactive messages. It imports the `send_proactive_message` function from a project script. When executed, it immediately calls this function to send a single test proactive message.

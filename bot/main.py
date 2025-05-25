@@ -1,11 +1,14 @@
 import os
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from telegram.ext import Application
 from telegram import Update
 from bot.telegram_router import setup_handlers
 from contextlib import asynccontextmanager
 from bot.error_middleware import add_error_middleware
+import logging
 
+# Configure logging
+logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -71,8 +74,6 @@ def build_app():
             await app.state.telegram_bot.process_update(update)
         except Exception as e:
             # Log the error but return OK to Telegram to avoid retries
-            import logging
-            logger = logging.getLogger(__name__)
             logger.error(f"Error processing update: {e}")
         
         return {"status": "ok"}
@@ -81,6 +82,58 @@ def build_app():
     async def health():
         """Health check endpoint for Cloud Run"""
         return {"status": "ok"}
+
+    @app.post("/send-proactive")
+    async def send_proactive_message(request: Request):
+        """Send a proactive message to the user - called by Cloud Scheduler"""
+        try:
+            # Import here to avoid circular imports
+            from scripts.proactive_messages import send_proactive_message
+            
+            # Verify the request is from Cloud Scheduler (optional security check)
+            user_agent = request.headers.get("user-agent", "")
+            if not user_agent.startswith("Google-Cloud-Scheduler"):
+                logger.warning(f"Proactive message endpoint called by non-scheduler: {user_agent}")
+            
+            logger.info("Received proactive message request from scheduler")
+            
+            # Send the proactive message (backward compatibility)
+            send_proactive_message()
+            
+            return {"status": "success", "message": "Proactive message sent"}
+            
+        except Exception as e:
+            logger.error(f"Error sending proactive message: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to send proactive message: {str(e)}")
+
+    @app.post("/send-proactive/{timezone}")
+    async def send_proactive_message_timezone(timezone: str, request: Request):
+        """Send proactive messages to all users in a specific timezone - called by Cloud Scheduler"""
+        try:
+            # Import here to avoid circular imports
+            from scripts.proactive_messages import send_proactive_messages_for_timezone
+            
+            # Verify the request is from Cloud Scheduler (optional security check)
+            user_agent = request.headers.get("user-agent", "")
+            if not user_agent.startswith("Google-Cloud-Scheduler"):
+                logger.warning(f"Proactive message endpoint called by non-scheduler: {user_agent}")
+            
+            # Validate timezone
+            valid_timezones = ["Asia/Makassar", "Europe/Moscow"]
+            if timezone not in valid_timezones:
+                raise HTTPException(status_code=400, detail=f"Invalid timezone. Valid options: {valid_timezones}")
+            
+            logger.info(f"Received proactive message request for timezone {timezone}")
+            
+            # Send proactive messages for this timezone
+            send_proactive_messages_for_timezone(timezone)
+            
+            location = "Bali" if timezone == "Asia/Makassar" else "Moscow"
+            return {"status": "success", "message": f"Proactive messages sent for {location} timezone"}
+            
+        except Exception as e:
+            logger.error(f"Error sending proactive messages for timezone {timezone}: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to send proactive messages: {str(e)}")
 
     return app
 

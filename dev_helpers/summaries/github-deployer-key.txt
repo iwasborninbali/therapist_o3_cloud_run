@@ -1,0 +1,4 @@
+hash:1b224df456595984f769e548517cea78ab38567df1d3072f1ff6a6b9e4e5cbe8
+path:github-deployer-key.json | source:github-deployer-key.json | lastUpdated:2025-05-23T11:09:19.414048 | lines:13
+
+This file contains credentials for a Google Cloud Platform (GCP) service account. It includes the private key and client email required for programmatic authentication. Its purpose is to allow an application, likely a GitHub deployer, to access and manage resources within the specified GCP project ("therapist-o3").

@@ -3,6 +3,7 @@ from datetime import datetime
 from google.cloud import firestore
 from config import Config
 from bot.retry_utils import retry_sync
+import pytz
 
 logger = logging.getLogger(__name__)
 
@@ -207,3 +208,156 @@ def set_system_prompt(user_id, prompt):
         logger.error(
             f"Error setting system prompt for user {user_id}: {str(e)}")
         return False
+
+
+@retry_sync()
+def get_user_settings(user_id):
+    """
+    Retrieve user settings including timezone preference.
+
+    Args:
+        user_id (str): The user's Telegram ID
+
+    Returns:
+        dict or None: User settings if found, None otherwise
+    """
+    try:
+        current_db = get_db()
+        settings_ref = current_db.collection("user_settings").document(user_id)
+        settings_doc = settings_ref.get()
+
+        if settings_doc.exists:
+            return settings_doc.to_dict()
+        return None
+
+    except Exception as e:
+        logger.error(
+            f"Error retrieving user settings for user {user_id}: {str(e)}")
+        return None
+
+
+@retry_sync()
+def set_user_settings(user_id, settings):
+    """
+    Set user settings including timezone preference.
+
+    Args:
+        user_id (str): The user's Telegram ID
+        settings (dict): Settings dictionary (e.g., {'timezone': 'Asia/Makassar'})
+
+    Returns:
+        bool: Success status
+    """
+    try:
+        current_db = get_db()
+        settings_ref = current_db.collection("user_settings").document(user_id)
+        
+        # Merge with existing settings
+        existing_settings = get_user_settings(user_id) or {}
+        updated_settings = {**existing_settings, **settings}
+        updated_settings["updated_at"] = datetime.utcnow()
+        
+        settings_ref.set(updated_settings)
+
+        logger.debug(f"Set user settings for user {user_id}: {settings}")
+        return True
+
+    except Exception as e:
+        logger.error(
+            f"Error setting user settings for user {user_id}: {str(e)}")
+        return False
+
+
+@retry_sync()
+def get_users_by_timezone(timezone):
+    """
+    Get all user IDs that have the specified timezone setting.
+    
+    Args:
+        timezone (str): Timezone string (e.g., 'Asia/Makassar', 'Europe/Moscow')
+        
+    Returns:
+        list: List of user IDs
+    """
+    try:
+        current_db = get_db()
+        settings_ref = current_db.collection("user_settings")
+        query = settings_ref.where("timezone", "==", timezone)
+        docs = query.stream()
+        
+        user_ids = []
+        for doc in docs:
+            user_ids.append(doc.id)
+            
+        return user_ids
+        
+    except Exception as e:
+        logger.error(f"Error getting users by timezone {timezone}: {str(e)}")
+        return []
+
+
+def generate_timestamp_info(user_id):
+    """
+    Generate timestamp information for the current message, including:
+    - Current time in user's timezone
+    - Time gap since last user message
+    
+    Args:
+        user_id (str): The user's Telegram ID
+        
+    Returns:
+        str: Formatted timestamp information for the AI context
+    """
+    try:
+        # Get user's timezone
+        user_settings = get_user_settings(user_id)
+        if not user_settings or not user_settings.get('timezone'):
+            return "Текущее время: не задан часовой пояс пользователя"
+        
+        timezone_str = user_settings['timezone']
+        user_tz = pytz.timezone(timezone_str)
+        current_time = datetime.now(user_tz)
+        
+        # Get conversation history to find last user message
+        history = get_history(user_id)
+        
+        # Find last user message (excluding the current one which hasn't been saved yet)
+        last_user_message_time = None
+        for msg in reversed(history):
+            if msg['role'] == 'user':
+                # Convert UTC timestamp to user's timezone
+                if isinstance(msg['timestamp'], datetime):
+                    utc_time = msg['timestamp'].replace(tzinfo=pytz.UTC)
+                    last_user_message_time = utc_time.astimezone(user_tz)
+                    break
+        
+        # Format current time
+        location_name = "Bali" if timezone_str == "Asia/Makassar" else "Moscow" if timezone_str == "Europe/Moscow" else timezone_str
+        time_info = f"Сейчас в {location_name}: {current_time.strftime('%d.%m.%Y %H:%M (%A)')}"
+        
+        # Calculate time gap if we have a previous message
+        if last_user_message_time:
+            time_diff = current_time - last_user_message_time
+            
+            # Format time difference
+            if time_diff.days > 0:
+                gap_info = f" (с последнего сообщения прошло: {time_diff.days} дн. {time_diff.seconds // 3600} ч.)"
+            elif time_diff.seconds >= 3600:  # More than 1 hour
+                hours = time_diff.seconds // 3600
+                minutes = (time_diff.seconds % 3600) // 60
+                gap_info = f" (с последнего сообщения прошло: {hours} ч. {minutes} мин.)"
+            elif time_diff.seconds >= 60:  # More than 1 minute
+                minutes = time_diff.seconds // 60
+                gap_info = f" (с последнего сообщения прошло: {minutes} мин.)"
+            else:
+                gap_info = " (только что писал)"
+            
+            time_info += gap_info
+        else:
+            time_info += " (первое сообщение пользователя)"
+        
+        return time_info
+        
+    except Exception as e:
+        logger.error(f"Error generating timestamp info for user {user_id}: {str(e)}")
+        return f"Текущее время: ошибка получения времени"

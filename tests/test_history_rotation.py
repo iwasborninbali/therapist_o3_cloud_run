@@ -35,7 +35,7 @@ def mock_config(monkeypatch):
     # Patch the actual config instance used by the history_manager module
     monkeypatch.setattr('bot.history_manager.config.HISTORY_THRESHOLD_MESSAGES', 5)
     monkeypatch.setattr('bot.history_manager.config.MESSAGES_TO_SUMMARIZE_COUNT', 2)
-    monkeypatch.setattr('bot.history_manager.config.MAX_SUMMARIES', 2)
+    monkeypatch.setattr('bot.history_manager.config.MAX_SUMMARIES', 5)
     # Return the config module/object itself if needed by tests, though direct patching is usually enough
     from config import config as actual_config_instance
     return actual_config_instance
@@ -67,8 +67,11 @@ def test_manage_history_triggers_summarization_and_trimming(mock_ensure_max_summ
 
     mock_get_history.assert_called_once_with(user_id)
     # MESSAGES_TO_SUMMARIZE_COUNT is 2
+    # New format includes role prefixes
     messages_expected_for_summary = [
-        mock_history[0]['content'], mock_history[1]['content']]
+        "Пользователь: Old message 1", 
+        "Терапевт: Old response 1"
+    ]
     mock_summarize.assert_called_once_with(messages_expected_for_summary)
     mock_add_summary.assert_called_once_with(
         user_id, "Test summary of old messages")
@@ -106,25 +109,32 @@ def test_manage_history_below_threshold(mock_summarize, mock_get_history, mock_c
 @patch('bot.history_manager.db')
 def test_ensure_max_summaries_deletes_oldest(mock_db, mock_config):
     user_id = "test_user_3"
-    # MAX_SUMMARIES is 2
-    # Create 3 mock summary documents that stream() would return
+    # MAX_SUMMARIES is 5
+    # Create 6 mock summary documents that stream() would return
     # Oldest summary (sum_old) should be deleted.
     mock_summary_doc_old = MagicMock(spec=firestore.DocumentSnapshot)
     mock_summary_doc_old.reference = MagicMock()
-    # mock_summary_doc_old.to_dict.return_value = {"content": "Oldest summary", "timestamp": datetime.datetime.utcnow() - datetime.timedelta(hours=3)}
 
-    mock_summary_doc_mid = MagicMock(spec=firestore.DocumentSnapshot)
-    mock_summary_doc_mid.reference = MagicMock()
-    # mock_summary_doc_mid.to_dict.return_value = {"content": "Middle summary", "timestamp": datetime.datetime.utcnow() - datetime.timedelta(hours=2)}
+    mock_summary_doc_2 = MagicMock(spec=firestore.DocumentSnapshot)
+    mock_summary_doc_2.reference = MagicMock()
 
-    mock_summary_doc_new = MagicMock(spec=firestore.DocumentSnapshot)
-    mock_summary_doc_new.reference = MagicMock()
-    # mock_summary_doc_new.to_dict.return_value = {"content": "Newest summary", "timestamp": datetime.datetime.utcnow() - datetime.timedelta(hours=1)}
+    mock_summary_doc_3 = MagicMock(spec=firestore.DocumentSnapshot)
+    mock_summary_doc_3.reference = MagicMock()
+
+    mock_summary_doc_4 = MagicMock(spec=firestore.DocumentSnapshot)
+    mock_summary_doc_4.reference = MagicMock()
+
+    mock_summary_doc_5 = MagicMock(spec=firestore.DocumentSnapshot)
+    mock_summary_doc_5.reference = MagicMock()
+
+    mock_summary_doc_newest = MagicMock(spec=firestore.DocumentSnapshot)
+    mock_summary_doc_newest.reference = MagicMock()
 
     # Mock the stream to return these in ASCENDING timestamp order
     mock_stream = MagicMock()
     mock_stream.stream.return_value = [
-        mock_summary_doc_old, mock_summary_doc_mid, mock_summary_doc_new]
+        mock_summary_doc_old, mock_summary_doc_2, mock_summary_doc_3, 
+        mock_summary_doc_4, mock_summary_doc_5, mock_summary_doc_newest]
 
     mock_collection = MagicMock()
     # order_by returns the query obj, which then streams

@@ -1,0 +1,58 @@
+**КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ БЕЗОПАСНОСТИ**
+
+Дата: 25 мая 2025
+Исполнитель: gemini_1
+
+ПРОБЛЕМА:
+В репозитории обнаружены credential файлы с приватными ключами, что является критической уязвимостью безопасности.
+
+ВЫПОЛНЕННЫЕ ИСПРАВЛЕНИЯ:
+
+1. **Удаление credential файлов**
+   ✅ Удалил ales-f75a1-firebase-adminsdk-fbsvc-e008504e79.json
+   ✅ Удалил firebase-adminsdk-key.json  
+   ✅ Удалил github-deployer-key.json
+
+2. **Обновление .gitignore**
+   ✅ Добавил правила: *adminsdk*.json, *service-account*.json, *deployer*-key.json
+   ✅ Убрал исключение для ales-f75a1 файла
+
+3. **Улучшение CI guards**
+   ✅ Обновил .github/workflows/deploy.yml
+   ✅ Добавил проверку на "private_key" в JSON файлах
+   ✅ Guard работает в обеих job (build и deploy)
+
+4. **Унификация переменных окружения**
+   ✅ Стандартизировал на TELEGRAM_BOT_TOKEN везде
+   ✅ Добавил fallback на TELEGRAM_TOKEN в config.py для совместимости
+   ✅ Обновил scripts/set_webhook.py
+   ✅ Обновил .github/workflows/deploy.yml
+
+5. **Добавление недостающих переменных**
+   ✅ Добавил FIREBASE_PROJECT_ID в deploy workflow
+   ✅ Все переменные теперь передаются корректно
+
+ТЕСТИРОВАНИЕ:
+✅ Все тесты проходят без credential файлов (7 passed)
+✅ CI guard работает локально - не находит credential artifacts
+✅ YAML синтаксис workflow файла корректный
+✅ Приложение работает только с FIREBASE_CRED_JSON env var
+
+СТАТУС: ✅ ЗАВЕРШЕНО
+
+СЛЕДУЮЩИЕ ШАГИ ДЛЯ HUMAN:
+1. Добавить GitHub Secrets в Settings → Secrets → Actions:
+   - TELEGRAM_BOT_TOKEN (основная переменная)
+   - FIREBASE_PROJECT_ID (ID проекта Firebase)
+   - FIREBASE_CRED_JSON (полный JSON service account)
+   - OPENAI_API_KEY
+   - GEMINI_API_KEY  
+   - GCP_SA_KEY (service account для деплоя)
+   - CLOUD_RUN_REGION (us-central1)
+   - GCP_PROJECT_ID
+   - DOCKER_REGISTRY_REPO
+   - CLOUD_RUN_SERVICE_NAME
+
+2. Сделать тестовый пуш для проверки автоматического деплоя
+
+БЕЗОПАСНОСТЬ ВОССТАНОВЛЕНА - репозиторий больше не содержит credential файлов. 

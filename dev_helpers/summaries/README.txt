@@ -1,4 +1,4 @@
-hash:4a4303fb35abf290b52b4a5b944fdf03ee367b71141ef470964d67d3518931fc
-path:README.md | source:README.md | lastUpdated:2025-05-22T22:52:41.045940 | lines:260
+hash:1ad8d401971f37727d8a96fc70cf34c46bb0ee3cec93edc688e5bf29e00a73ef
+path:README.md | source:README.md | lastUpdated:2025-05-22T23:21:06.142789 | lines:262
 
-This README describes a containerized Telegram bot that provides AI-assisted conversations. It integrates with OpenAI for responses and uses Firebase Firestore to manage conversation history and context. The bot automatically summarizes long conversations using Gemini and implements history trimming to manage length. Designed for deployment on Google Cloud Run, it includes automated CI/CD workflows. The document covers setup, security, testing, and deployment details.
+This README describes a containerized Telegram bot that serves as an AI assistant. It integrates with OpenAI for generating responses and uses Firebase Firestore to manage conversation history. Key features include context-aware responses, automatic conversation summarization using Gemini, and user-specific prompts. The bot manages conversation length by trimming old messages and storing summaries to maintain context. It is designed for deployment on Google Cloud Run with automated CI/CD via GitHub Actions.

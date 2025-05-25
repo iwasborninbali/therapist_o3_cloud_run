@@ -1,0 +1,4 @@
+hash:b176e66833638ef4faa007a31149074d1f2909ceeb6b317b0d529525649103ef
+path:scripts/check_user_settings.py | source:scripts/check_user_settings.py | lastUpdated:2025-05-24T14:14:25.299860 | lines:47
+
+This Python script is designed to check and manage user settings stored in a Firestore database. It retrieves settings for a hardcoded user ID using `get_user_settings`. If no settings are found for that user, it sets a default timezone ("Asia/Makassar") using `set_user_settings` and then verifies the change. The script also adjusts the Python path to import the necessary Firestore client module from the project root.

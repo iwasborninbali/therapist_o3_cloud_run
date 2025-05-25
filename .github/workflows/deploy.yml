@@ -21,7 +21,9 @@ jobs:
 
       - name: Check for prohibited artifacts
         run: |
-          ! grep -R --line-number --quiet -E 'adminsdk.*\.json' . && ! test -e firebase.json && ! test -d functions || (echo "❌ Credential or functions artefacts detected"; exit 1)
+          if grep -R --line-number -E '"private_key"' ./*.json bot scripts 2>/dev/null || test -e firebase.json || test -d functions; then
+            echo "❌ Credential artefacts detected"; exit 1
+          fi
 
       - name: Authenticate to Google Cloud
         id: auth
@@ -62,7 +64,9 @@ jobs:
 
       - name: Check for prohibited artifacts
         run: |
-          ! grep -R --line-number --quiet -E 'adminsdk.*\.json' . && ! test -e firebase.json && ! test -d functions || (echo "❌ Credential or functions artefacts detected"; exit 1)
+          if grep -R --line-number -E '"private_key"' ./*.json bot scripts 2>/dev/null || test -e firebase.json || test -d functions; then
+            echo "❌ Credential artefacts detected"; exit 1
+          fi
 
       - name: Authenticate to Google Cloud
         id: auth
@@ -83,11 +87,11 @@ jobs:
           image: ${{ secrets.CLOUD_RUN_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.DOCKER_REGISTRY_REPO }}/${{ secrets.CLOUD_RUN_SERVICE_NAME }}:${{ github.sha }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           env_vars: |
-            TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}
+            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
             OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-            FIREBASE_CRED_JSON='${{ secrets.FIREBASE_CRED_JSON }}' # Ensure this is correctly formatted (single quotes if JSON string)
+            FIREBASE_CRED_JSON='${{ secrets.FIREBASE_CRED_JSON }}'
+            FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
             GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
-            # Add any other environment variables your application needs
           flags: --min-instances=0 --allow-unauthenticated # Set min-instances and allow unauthenticated access
 
       - name: Output Deployed URL
@@ -107,7 +111,7 @@ jobs:
 
       - name: Run set_webhook.py script
         env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           SERVICE_URL: ${{ steps.deploy.outputs.url }} # Use the deployed service URL from the previous step
         run: |
           python scripts/set_webhook.py 

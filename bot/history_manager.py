@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
 def manage_history(user_id: str):
     """
     Manages user conversation history.
-    If history exceeds threshold, it trims, generates a summary, and stores it.
+    If history exceeds threshold (50 messages = 25 user+assistant pairs), 
+    it trims the oldest 30 messages (15 pairs), generates a summary, and stores it.
 
     Args:
         user_id (str): The ID of the user.
@@ -23,40 +24,64 @@ def manage_history(user_id: str):
     current_history = get_history(user_id)
     history_len = len(current_history)
 
-    if history_len > config.HISTORY_THRESHOLD_MESSAGES:
+    # Count user and assistant message pairs
+    user_messages = [msg for msg in current_history if msg['role'] == 'user']
+    assistant_messages = [msg for msg in current_history if msg['role'] == 'assistant']
+    
+    # Consider complete pairs only (minimum of user and assistant counts)
+    complete_pairs = min(len(user_messages), len(assistant_messages))
+    total_messages_in_pairs = complete_pairs * 2
+
+    logger.debug(
+        f"User {user_id} has {history_len} total messages "
+        f"({len(user_messages)} user, {len(assistant_messages)} assistant), "
+        f"{complete_pairs} complete pairs ({total_messages_in_pairs} messages in pairs)"
+    )
+
+    # Trigger summarization when we have 25 or more complete pairs (50+ messages)
+    if total_messages_in_pairs >= config.HISTORY_THRESHOLD_MESSAGES:
         log_msg = (
-            f"History for user {user_id} (length {history_len}) exceeds "
-            f"threshold ({config.HISTORY_THRESHOLD_MESSAGES}). Trimming."
+            f"History for user {user_id} ({complete_pairs} pairs = {total_messages_in_pairs} messages) "
+            f"exceeds threshold ({config.HISTORY_THRESHOLD_MESSAGES} messages = "
+            f"{config.HISTORY_THRESHOLD_MESSAGES // 2} pairs). Trimming."
         )
         logger.info(log_msg)
 
+        # Take the oldest 30 messages (15 pairs) for summarization
         messages_to_summarize_count = config.MESSAGES_TO_SUMMARIZE_COUNT
         if messages_to_summarize_count > history_len:
             messages_to_summarize_count = history_len
 
+        # Ensure we're taking complete pairs for summarization
+        # Take messages in chronological order (oldest first)
         messages_for_summary_objects = current_history[:messages_to_summarize_count]
         remaining_history = current_history[messages_to_summarize_count:]
 
-        message_contents_for_summary = [msg['content']
-                                        for msg in messages_for_summary_objects]
+        # Extract content for summarization, formatted with role information
+        message_contents_for_summary = []
+        for msg in messages_for_summary_objects:
+            role_label = "Пользователь" if msg['role'] == 'user' else "Терапевт"
+            message_contents_for_summary.append(f"{role_label}: {msg['content']}")
 
         summary_text = summarize(message_contents_for_summary)
 
         add_summary(user_id, summary_text)
         _ensure_max_summaries(user_id)
 
-        # Deletion logic placeholder
+        # Delete old messages from Firestore
         _delete_messages_from_firestore(user_id, messages_for_summary_objects)
 
         logger.info(
             f"History for user {user_id} trimmed. "
-            f"New length: {len(remaining_history)}. Summary stored."
+            f"Summarized {len(messages_for_summary_objects)} oldest messages. "
+            f"Remaining history length: {len(remaining_history)}. Summary stored."
         )
         return remaining_history
     else:
+        threshold_pairs = config.HISTORY_THRESHOLD_MESSAGES // 2
         logger.debug(
-            f"History for user {user_id} (length {history_len}) is within "
-            f"threshold. No action."
+            f"History for user {user_id} ({complete_pairs} pairs) is within "
+            f"threshold ({threshold_pairs} pairs). No action."
         )
         return current_history
 

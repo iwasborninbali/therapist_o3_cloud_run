@@ -41,7 +41,7 @@ class Config:
     """Configuration settings loaded from environment variables"""
 
     # Telegram Bot credentials
-    TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN")
+    TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN") or os.getenv("TELEGRAM_TOKEN")
 
     # OpenAI API credentials
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
@@ -61,10 +61,10 @@ class Config:
 
     # History and Summarization configuration
     HISTORY_THRESHOLD_MESSAGES: int = int(
-        os.getenv("HISTORY_THRESHOLD_MESSAGES", "30"))
+        os.getenv("HISTORY_THRESHOLD_MESSAGES", "50"))
     MESSAGES_TO_SUMMARIZE_COUNT: int = int(
-        os.getenv("MESSAGES_TO_SUMMARIZE_COUNT", "20"))
-    MAX_SUMMARIES: int = int(os.getenv("MAX_SUMMARIES", "3"))
+        os.getenv("MESSAGES_TO_SUMMARIZE_COUNT", "30"))
+    MAX_SUMMARIES: int = int(os.getenv("MAX_SUMMARIES", "5"))
 
     @classmethod
     def validate(cls):

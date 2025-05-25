@@ -54,9 +54,9 @@ A containerized Telegram bot that integrates with OpenAI's API to provide AI-ass
    RETRY_BASE_DELAY=1.0 # In seconds
 
    # History and Summarization Configuration
-   HISTORY_THRESHOLD_MESSAGES=30 # Number of messages before triggering summarization
-   MESSAGES_TO_SUMMARIZE_COUNT=20 # Number of oldest messages to summarize
-   MAX_SUMMARIES=3 # Maximum number of stored summaries per user (FIFO)
+   HISTORY_THRESHOLD_MESSAGES=50 # Number of messages before triggering summarization (25 pairs)
+   MESSAGES_TO_SUMMARIZE_COUNT=30 # Number of oldest messages to summarize (15 pairs)
+   MAX_SUMMARIES=5 # Maximum number of stored summaries per user (FIFO)
    ```
 
 ## Security Considerations
@@ -72,9 +72,9 @@ A containerized Telegram bot that integrates with OpenAI's API to provide AI-ass
 
 To ensure efficient processing and manage context windows for the AI model, the bot implements automatic history rotation and summarization:
 
-- **Threshold:** When the number of messages in a user's conversation history exceeds `HISTORY_THRESHOLD_MESSAGES` (default: 30), the oldest portion of the conversation is summarized.
-- **Summarization:** The `MESSAGES_TO_SUMMARIZE_COUNT` (default: 20) oldest messages are passed to the Gemini API to generate a concise summary.
-- **Storage:** This summary is then stored in Firestore. Up to `MAX_SUMMARIES` (default: 3) are kept per user, with older summaries being replaced in a First-In, First-Out (FIFO) manner.
+- **Threshold:** When the number of complete user-assistant message pairs exceeds 25 pairs (50 total messages), the oldest portion of the conversation is summarized. This is controlled by `HISTORY_THRESHOLD_MESSAGES` (default: 50).
+- **Summarization:** The oldest 15 message pairs (30 messages total) are passed to Gemini 2.5 Pro to generate a concise summary in no more than 5 sentences, focusing on all important topics. This is controlled by `MESSAGES_TO_SUMMARIZE_COUNT` (default: 30).
+- **Storage:** This summary is then stored in Firestore. Up to `MAX_SUMMARIES` (default: 5) are kept per user, with older summaries being replaced in a First-In, First-Out (FIFO) manner.
 - **Contextual Prompting:** Stored summaries are prepended to the conversation history (after the system prompt) when making new requests to OpenAI, providing the AI with context from older parts of the conversation without exceeding token limits.
 - **Trimming:** The messages that were summarized are then removed from the active conversation history in Firestore to keep the main history log manageable.
 

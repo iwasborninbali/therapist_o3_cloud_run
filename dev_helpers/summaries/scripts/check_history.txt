@@ -1,0 +1,4 @@
+hash:48549aacbb55abbc7929cc6a700dc32cb90dfeaa41618419b22f637d28851f6e
+path:scripts/check_history.py | source:scripts/check_history.py | lastUpdated:2025-05-23T20:40:30.356259 | lines:70
+
+This Python script is a debugging tool to inspect a specific user's conversation history. It retrieves the chat history for a hardcoded user ID using a `get_history` function, likely from a Firestore database client. The script then prints a formatted summary of all messages, showing timestamp, role, and a truncated content preview. Finally, it displays the full content of the last three messages for detailed examination. Its primary function is to provide visibility into a user's past interactions for debugging purposes.
