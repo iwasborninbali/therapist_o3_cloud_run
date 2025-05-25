@@ -20,13 +20,18 @@ def summarize(message_contents: list[str]) -> str:
     """
     try:
         if not message_contents:
+            logger.warning("No messages provided for summarization")
             return "No messages to summarize."
+        
+        logger.info(f"Starting summarization of {len(message_contents)} messages")
         
         # Combine all messages into a single conversation text
         conversation_text = "\n".join([
             f"Message {i+1}: {content}" 
             for i, content in enumerate(message_contents)
         ])
+        
+        logger.debug(f"Conversation text length: {len(conversation_text)} characters")
         
         # Create the summarization prompt
         prompt = f"""Сделай саммари этой переписки между пользователем и терапевтом. Убедись, что ты отразил все важные топики и ключевые моменты беседы. 
@@ -40,8 +45,10 @@ def summarize(message_contents: list[str]) -> str:
 
         # Use Gemini 2.5 Pro model
         model = genai.GenerativeModel('gemini-2.5-pro-preview-05-06')
+        logger.debug("Initialized Gemini 2.5 Pro model for summarization")
         
         # Generate the summary
+        logger.info("Sending request to Gemini API for summarization")
         response = model.generate_content(
             prompt,
             generation_config=genai.types.GenerationConfig(
@@ -52,10 +59,11 @@ def summarize(message_contents: list[str]) -> str:
         
         if response.text:
             summary = response.text.strip()
-            logger.info(f"Generated summary for {len(message_contents)} messages using Gemini 2.5 Pro")
+            logger.info(f"✅ Successfully generated summary for {len(message_contents)} messages. Summary length: {len(summary)} characters")
+            logger.debug(f"Generated summary: {summary[:200]}..." if len(summary) > 200 else f"Generated summary: {summary}")
             return summary
         else:
-            logger.error("Empty response from Gemini API")
+            logger.error("❌ Empty response from Gemini API")
             return "Error: Empty response from Gemini API"
         
     except Exception as e:

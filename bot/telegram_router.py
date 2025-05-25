@@ -235,6 +235,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     # 4. Get any existing summaries
     summary_objects = get_summaries(user_id)
     summary_contents = [s['content'] for s in summary_objects]
+    logger.info(f"📚 Loaded {len(summary_contents)} summaries for user {user_id} context")
 
     # 5. Generate timestamp information for context
     timestamp_info = generate_timestamp_info(user_id)
@@ -242,11 +243,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     # 6. Build the complete messages array for OpenAI
     messages_for_openai = []
     messages_for_openai.append({"role": "system", "content": system_prompt})
-    for summary_content in summary_contents:
+    for i, summary_content in enumerate(summary_contents):
         messages_for_openai.append({
             "role": "system",
             "content": f"Previous conversation summary: {summary_content}"
         })
+        logger.debug(f"📚 Added summary {i+1} to context for user {user_id}: {summary_content[:100]}...")
     # Add timestamp information as system message
     messages_for_openai.append({
         "role": "system", 

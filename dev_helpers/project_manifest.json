@@ -44,6 +44,17 @@
       "description": "Script to register Telegram webhook"
     },
     {
+      "name": "scripts.set_env_vars",
+      "path": "scripts/set_env_vars.sh",
+      "description": "Sets environment variables in Cloud Run service via gcloud CLI"
+    },
+    {
+      "name": "scripts.build_and_deploy",
+      "path": "scripts/build_and_deploy.sh", 
+      "description": "Builds Docker image and deploys to Cloud Run without modifying environment variables"
+    },
+
+    {
       "name": "config",
       "path": "config.py",
       "description": "Environment and configuration management"
@@ -83,6 +94,36 @@
     "pytz",
     "requests"
   ],
+  "deployment": {
+    "cloud_run_project": "therapist-o3",
+    "firebase_project": "ales-f75a1",
+    "region": "us-central1",
+    "service_name": "therapist-o3",
+    "artifact_registry": "cloud-run-source-deploy",
+    "service_account": "therapist-o3-service@therapist-o3.iam.gserviceaccount.com",
+    "authentication_method": "service_identity",
+    "environment_variables": {
+      "TELEGRAM_BOT_TOKEN": "Set via gcloud CLI",
+      "OPENAI_API_KEY": "Set via gcloud CLI", 
+      "GEMINI_API_KEY": "Set via gcloud CLI",
+      "FIREBASE_PROJECT_ID": "ales-f75a1 (hardcoded)"
+    },
+         "scripts": {
+       "set_env_vars.sh": "Sets environment variables via gcloud CLI",
+       "build_and_deploy.sh": "Builds and deploys Docker image without touching env vars"
+     }
+  },
+  "security": {
+    "firebase_authentication": "service_identity",
+    "service_account_permissions": [
+      "roles/firebase.admin on ales-f75a1 project"
+    ],
+    "notes": [
+      "Uses Cloud Run service identity instead of GOOGLE_APPLICATION_CREDENTIALS",
+      "Dedicated user-managed service account for better security",
+      "No explicit credentials stored in environment variables"
+    ]
+  },
   "architecture_decisions": [
     {
       "id": "ADR-0001",
@@ -98,6 +139,11 @@
       "id": "ADR-0003",
       "title": "Keep Proactive Scheduler in a Dedicated Cloud Run Service", 
       "path": "docs/ADR-0003-scheduler-as-separate-service.md"
+    },
+    {
+      "id": "ADR-0004",
+      "title": "Use Service Identity for Firebase Authentication",
+      "description": "Replaced GOOGLE_APPLICATION_CREDENTIALS with Cloud Run service identity for better security and compliance with Google Cloud best practices"
     }
   ]
 } 

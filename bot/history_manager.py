@@ -63,12 +63,18 @@ def manage_history(user_id: str):
             role_label = "Пользователь" if msg['role'] == 'user' else "Терапевт"
             message_contents_for_summary.append(f"{role_label}: {msg['content']}")
 
+        logger.info(f"📝 Generating summary for user {user_id} from {len(message_contents_for_summary)} message contents")
         summary_text = summarize(message_contents_for_summary)
+        logger.info(f"📝 Summary generated for user {user_id}: {summary_text[:100]}..." if len(summary_text) > 100 else f"📝 Summary generated for user {user_id}: {summary_text}")
 
+        logger.info(f"💾 Storing summary for user {user_id}")
         add_summary(user_id, summary_text)
+        
+        logger.info(f"🧹 Ensuring max summaries limit for user {user_id}")
         _ensure_max_summaries(user_id)
 
         # Delete old messages from Firestore
+        logger.info(f"🗑️ Deleting {len(messages_for_summary_objects)} old messages from Firestore for user {user_id}")
         _delete_messages_from_firestore(user_id, messages_for_summary_objects)
 
         logger.info(
@@ -90,9 +96,9 @@ def _delete_messages_from_firestore(user_id: str, messages_to_delete: list):
     """
     Deletes messages from a user's history in Firestore.
     Assumes `messages_to_delete` contains objects with 'firestore_doc_id'.
-    Placeholder: Adapt based on actual message ID handling.
     """
     if not messages_to_delete:
+        logger.info(f"🗑️ No messages to delete for user {user_id}")
         return
 
     try:
@@ -101,35 +107,38 @@ def _delete_messages_from_firestore(user_id: str, messages_to_delete: list):
             user_id).collection("messages")
         batch = db.batch()
         deleted_count = 0
-        for msg_data in messages_to_delete:
-            # CRITICAL: Assumes get_history provides 'firestore_doc_id'.
-            # If not, this will fail. Needs robust implementation.
+        missing_id_count = 0
+        
+        logger.info(f"🗑️ Processing {len(messages_to_delete)} messages for deletion for user {user_id}")
+        
+        for i, msg_data in enumerate(messages_to_delete):
             if "firestore_doc_id" in msg_data:
-                doc_ref = history_collection_ref.document(
-                    msg_data["firestore_doc_id"])
+                doc_id = msg_data["firestore_doc_id"]
+                doc_ref = history_collection_ref.document(doc_id)
                 batch.delete(doc_ref)
                 deleted_count += 1
+                logger.debug(f"🗑️ Queued for deletion: message {i+1} with ID {doc_id}")
             else:
+                missing_id_count += 1
                 logger.warning(
-                    f"Message for user {user_id} missing 'firestore_doc_id'. "
-                    f"Cannot delete."
+                    f"🚨 Message {i+1} for user {user_id} missing 'firestore_doc_id'. "
+                    f"Content: {msg_data.get('content', 'N/A')[:50]}... "
+                    f"Role: {msg_data.get('role', 'N/A')}"
                 )
 
         if deleted_count > 0:
+            logger.info(f"🗑️ Committing deletion of {deleted_count} messages for user {user_id}")
             batch.commit()
-            logger.info(
-                f"Deleted {deleted_count} old messages for user {user_id}."
-            )
-        else:
-            logger.warning(
-                f"No messages deleted for user {user_id} during trim. "
-                f"Check ID retrieval."
-            )
+            logger.info(f"✅ Successfully deleted {deleted_count} old messages for user {user_id}")
+        
+        if missing_id_count > 0:
+            logger.warning(f"⚠️ {missing_id_count} messages could not be deleted due to missing firestore_doc_id")
+        
+        if deleted_count == 0:
+            logger.error(f"❌ No messages were deleted for user {user_id} during trim - check ID retrieval")
 
     except Exception as e:
-        logger.error(
-            f"Error deleting old messages for user {user_id}: {str(e)}"
-        )
+        logger.error(f"❌ Error deleting old messages for user {user_id}: {str(e)}")
 
 
 def _ensure_max_summaries(user_id: str):

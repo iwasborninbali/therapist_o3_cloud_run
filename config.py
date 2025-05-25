@@ -13,41 +13,52 @@ logging.basicConfig(
 # Load environment variables from .env file first
 load_dotenv(override=False)
 
-# Handle Firebase credentials - FIREBASE_CRED_JSON or existing GOOGLE_APPLICATION_CREDENTIALS
+# Handle Firebase credentials - Use service identity when running on Cloud Run
+# For local development, fall back to GOOGLE_APPLICATION_CREDENTIALS or FIREBASE_CRED_JSON
 firebase_cred_json_content = os.getenv("FIREBASE_CRED_JSON")
 google_app_creds_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
-if firebase_cred_json_content:
-    # Always use decrypted/direct JSON content if available
+# Check if running on Cloud Run (has metadata server)
+def is_running_on_cloud_run():
+    try:
+        import requests
+        response = requests.get(
+            "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token",
+            headers={"Metadata-Flavor": "Google"},
+            timeout=1
+        )
+        return response.status_code == 200
+    except:
+        return False
+
+if is_running_on_cloud_run():
+    # Running on Cloud Run - use service identity (no explicit credentials needed)
+    logging.info("Running on Cloud Run - using service identity for Firebase authentication")
+elif firebase_cred_json_content:
+    # Local development with FIREBASE_CRED_JSON
     cred_file_path = "/tmp/firebase_service_account.json"
     try:
-        # Decode escape sequences (like \n) in the JSON content
         import json
-        # Parse and re-serialize to ensure proper formatting
         creds_data = json.loads(firebase_cred_json_content)
         formatted_json = json.dumps(creds_data, indent=2)
         
         with open(cred_file_path, "w") as f:
             f.write(formatted_json)
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = cred_file_path
-        logging.info(
-            f"Set GOOGLE_APPLICATION_CREDENTIALS from credentials "
-            f"(written to {cred_file_path})"
-        )
+        logging.info(f"Local development - using FIREBASE_CRED_JSON credentials")
     except (IOError, json.JSONDecodeError) as e:
-        logging.error(
-            f"Failed to write Firebase credentials to {cred_file_path}: {e}"
-        )
+        logging.error(f"Failed to write Firebase credentials to {cred_file_path}: {e}")
         raise RuntimeError(f"Failed to setup Firebase credentials: {e}")
-elif not google_app_creds_path:
-    # No credentials provided - check if we're in testing mode
-    if os.getenv("TESTING") == "True":
-        logging.warning("Running in test mode without Firebase credentials")
-    else:
-        raise RuntimeError(
-            "Firebase credentials required: set FIREBASE_CRED_JSON environment variable "
-            "or GOOGLE_APPLICATION_CREDENTIALS path"
-        )
+elif google_app_creds_path:
+    # Local development with existing GOOGLE_APPLICATION_CREDENTIALS
+    logging.info(f"Local development - using GOOGLE_APPLICATION_CREDENTIALS: {google_app_creds_path}")
+elif os.getenv("TESTING") == "True":
+    logging.warning("Running in test mode without Firebase credentials")
+else:
+    raise RuntimeError(
+        "Firebase credentials required for local development: set FIREBASE_CRED_JSON environment variable "
+        "or GOOGLE_APPLICATION_CREDENTIALS path"
+    )
 
 
 class Config:
@@ -93,7 +104,8 @@ class Config:
         if not cls.FIREBASE_PROJECT_ID:
             missing.append("FIREBASE_PROJECT_ID")
 
-        if not cls.GOOGLE_APPLICATION_CREDENTIALS:
+        # Only require GOOGLE_APPLICATION_CREDENTIALS for local development
+        if not is_running_on_cloud_run() and not cls.GOOGLE_APPLICATION_CREDENTIALS and os.getenv("TESTING") != "True":
             missing.append("GOOGLE_APPLICATION_CREDENTIALS")
 
         if missing:
