@@ -1,0 +1,4 @@
+hash:dbba54b354e22308d2f3616d19a4551a4270d2a12d6924756e7a2de7bbdc00c1
+path:tasks/gemini_1/15_scheduler_cleanup.md | source:tasks/gemini_1/15_scheduler_cleanup.md | lastUpdated:2025-05-26T10:51:46.630686 | lines:43
+
+This document describes task 15, "Scheduler Service Cleanup". Its main purpose is to remove an obsolete separate `therapist-scheduler` service. This service is being removed because its functionality has been successfully replaced by an HTTP endpoint (`/admin/send-proactive`) in the main service, triggered by Cloud Scheduler. The task involves deleting specific old script files, Dockerfile, and updating `project_manifest.json`, `README.md`, and `.dockerignore`. This cleanup simplifies the architecture, reduces costs, and improves maintenance by consolidating functionality into a single service.

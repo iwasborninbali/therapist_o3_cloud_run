@@ -1,4 +1,0 @@
-hash:fc77bf51c17fc54b9abc1c4a6f3f4dbbaaed1b86b7b0ab1ad5fd49c6b045df73
-path:scripts/proactive_messages.py | source:scripts/proactive_messages.py | lastUpdated:2025-05-25T16:27:19.413800 | lines:303
-
-This Python script implements a scheduler for a Telegram bot to send proactive messages to users. It iterates through users, checking their local time based on timezone settings. The script determines if a message should be sent at predefined morning or evening hours, ensuring only one message per slot per day is sent. Messages are generated using an AI model, incorporating user history and context retrieved from Firestore. Finally, the generated message is sent to the user via the Telegram Bot API.

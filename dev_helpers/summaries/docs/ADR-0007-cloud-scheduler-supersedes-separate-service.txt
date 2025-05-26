@@ -1,0 +1,4 @@
+hash:1fdf67e83b0f8240ff4d9353db959cd68ea4335cb6b76e905761524b5dda7b74
+path:docs/ADR-0007-cloud-scheduler-supersedes-separate-service.md | source:docs/ADR-0007-cloud-scheduler-supersedes-separate-service.md | lastUpdated:2025-05-26T10:48:54.673861 | lines:105
+
+This ADR (ADR-0007) documents the decision to replace a dedicated, always-on Cloud Run service used for sending proactive messages. The previous service was inefficient, imprecise, and costly due to its continuous operation and fixed check intervals. The new approach leverages Google Cloud Scheduler to trigger an HTTP endpoint (`/admin/send-proactive`) on the main bot service. Cloud Scheduler jobs are configured to call this endpoint at precise times for specific timezones and message slots. This transition improves timing accuracy, reduces costs through pay-per-execution, and simplifies the overall architecture.

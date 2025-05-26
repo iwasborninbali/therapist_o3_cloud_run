@@ -1,6 +1,6 @@
 # Task 15: Scheduler Service Cleanup
 
-**Status**: in-progress  
+**Status**: done  
 **Assignee**: gemini_1  
 **Created**: 2025-05-26  
 
@@ -30,7 +30,7 @@ Remove obsolete separate scheduler service and related files after successful im
 - [x] README updated to reflect single-service architecture
 - [x] All tests passing (pytest) - 20/20 passed
 - [x] Code quality checks passing (flake8) - no new issues
-- [ ] Changes committed
+- [x] Changes committed (commit e157183)
 
 ## Benefits
 - **Simplicity**: Single service instead of dual services

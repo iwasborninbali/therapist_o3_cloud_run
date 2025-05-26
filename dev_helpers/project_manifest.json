@@ -140,7 +140,8 @@
     {
       "id": "ADR-0003",
       "title": "Keep Proactive Scheduler in a Dedicated Cloud Run Service", 
-      "path": "docs/ADR-0003-scheduler-as-separate-service.md"
+      "path": "docs/ADR-0003-scheduler-as-separate-service.md",
+      "status": "superseded"
     },
     {
       "id": "ADR-0004",
@@ -151,6 +152,11 @@
       "id": "ADR-0005",
       "title": "Defer Cloud Build Trigger; Keep Manual Deploy Scripts",
       "path": "docs/ADR-0005-ci-cd-deferred.md"
+    },
+    {
+      "id": "ADR-0007",
+      "title": "Cloud Scheduler Supersedes Separate Service",
+      "path": "docs/ADR-0007-cloud-scheduler-supersedes-separate-service.md"
     }
   ]
 } 
