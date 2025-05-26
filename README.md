@@ -236,16 +236,27 @@ The project includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that
 
 We ignore cosmetic flake8 warnings by default (e.g., E501 line length, F401 unused imports); see `setup.cfg` for the current configuration. The primary focus is on security checks and functional tests passing in CI.
 
-### Continuous Deployment (CD) to Google Cloud Run (via GitHub Actions)
-*(This section will be fully detailed by Gemini_1 as part of task 05_cloud_run_ci_cd.md)*
+### Manual Deployment
 
-Upon merging to the `main` branch, a separate GitHub Actions workflow (`.github/workflows/deploy.yml`) will handle:
-1. Building the Docker image.
-2. Pushing the image to Google Artifact Registry.
-3. Deploying the new image version to the Google Cloud Run service (`TELEGRAM-AI` in `us-central1`).
-4. **Webhook Auto-Registration:** After a successful deployment, the workflow will automatically call the `scripts/set_webhook.py` script. This script uses the deployed service URL and your `TELEGRAM_BOT_TOKEN` (from GitHub Secrets) to inform Telegram where to send bot updates.
+Deployment is manual via `scripts/build_and_deploy*.sh` scripts. This approach provides deployment control and simplicity for this small-scale project.
 
-This enables a one-click deployment process: merge to `main`, and the rest is automated.
+**Deploy Main Bot Service:**
+```bash
+./scripts/build_and_deploy.sh
+```
+
+**Deploy Scheduler Service:**
+```bash
+./scripts/build_and_deploy_scheduler.sh
+```
+
+Both scripts handle:
+1. Building the Docker image
+2. Pushing to Google Container Registry
+3. Deploying to Cloud Run with appropriate configuration
+4. Preserving environment variables and service account settings
+
+After deployment, manually register the webhook using `scripts/set_webhook.py` if needed.
 
 ### Manual Webhook Management
 

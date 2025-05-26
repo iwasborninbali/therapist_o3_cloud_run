@@ -149,6 +149,11 @@
       "id": "ADR-0004",
       "title": "Use Service Identity for Firebase Authentication",
       "description": "Replaced GOOGLE_APPLICATION_CREDENTIALS with Cloud Run service identity for better security and compliance with Google Cloud best practices"
+    },
+    {
+      "id": "ADR-0005",
+      "title": "Defer Cloud Build Trigger; Keep Manual Deploy Scripts",
+      "path": "docs/ADR-0005-ci-cd-deferred.md"
     }
   ]
 } 
