@@ -7,26 +7,28 @@ A containerized Telegram bot that integrates with OpenAI's API to provide AI-ass
 
 ## Architecture Overview
 
-The application consists of two Cloud Run services:
+The application runs as a single Cloud Run service with proactive messaging triggered by Cloud Scheduler:
 
 ```
 ┌─────────────────────┐    ┌──────────────────────┐
-│   therapist-o3      │    │ therapist-scheduler  │
-│   (Main Bot)        │    │ (Proactive Messages) │
+│   therapist-o3      │    │  Cloud Scheduler     │
+│   (Main Bot)        │◄───┤  (Proactive Triggers)│
 ├─────────────────────┤    ├──────────────────────┤
-│ • FastAPI webhook   │    │ • Python scheduler   │
-│ • Public endpoint   │    │ • Private service    │
-│ • Scales 0-10       │    │ • Always-on (min=1)  │
-│ • 1GB RAM, 1 CPU    │    │ • 512MB RAM, 0.5 CPU │
+│ • FastAPI webhook   │    │ • 4 scheduled jobs   │
+│ • /admin/send-      │    │ • 10:00 & 20:00      │
+│   proactive endpoint│    │ • Bali & Moscow TZ   │
+│ • Scales to zero    │    │ • HTTP POST triggers │
+│ • 1GB RAM, 1 CPU    │    │ • OIDC authentication│
 └─────────────────────┘    └──────────────────────┘
-           │                           │
-           └───────────┬───────────────┘
-                       │
+           │                           
+           │                           
                 ┌─────────────┐
                 │  Firestore  │
                 │  Database   │
                 └─────────────┘
 ```
+
+**Architecture Decision**: See [ADR-0007](docs/ADR-0007-cloud-scheduler-supersedes-separate-service.md) for the rationale behind moving from a separate scheduler service to Cloud Scheduler HTTP triggers.
 
 ## Features
 
@@ -106,20 +108,44 @@ This process helps maintain long-term context for extended conversations while k
 
 ## Proactive Message Scheduler
 
-The bot includes a universal proactive message scheduler that sends automated check-ins to users at 10:00 AM and 8:00 PM in their local timezone.
+The bot includes a proactive message system that sends automated check-ins to users at 10:00 AM and 8:00 PM in their local timezone using Cloud Scheduler triggers.
 
 ### How It Works
 
 - **Per-User Timezone Support**: Each user can set their timezone via the `/timezone` command (Bali or Moscow currently supported)
-- **Universal Scheduler**: A single Cloud Run service (`Dockerfile.scheduler`) runs `scripts/proactive_messages.py` continuously
+- **Cloud Scheduler Triggers**: Four scheduled jobs trigger the `/admin/send-proactive` endpoint at precise times
+- **HTTP Endpoint**: `POST /admin/send-proactive?timezone={tz}&slot={morning|evening}` processes users by timezone
 - **Deduplication**: Uses Firestore `proactive_meta` collection to track when messages were last sent, preventing duplicates
-- **Smart Timing**: Checks every 5 minutes (configurable via `PROACTIVE_CHECK_INTERVAL`) and only sends messages during the exact hour (10:00 or 20:00)
+- **Parallel Processing**: Uses ThreadPoolExecutor for efficient concurrent message generation and sending
 
-### Configuration
+### Cloud Scheduler Jobs
+
+Create four Cloud Scheduler jobs to trigger proactive messages:
 
 ```bash
-# Environment variables for scheduler
-PROACTIVE_CHECK_INTERVAL=300  # Check interval in seconds (default: 5 minutes)
+# Bali morning (10:00 Asia/Makassar)
+gcloud scheduler jobs create http bali-morning \
+  --schedule="0 10 * * *" --time-zone="Asia/Makassar" \
+  --uri="$BOT_URL/admin/send-proactive?timezone=Asia/Makassar&slot=morning" \
+  --oidc-service-account-email=therapist-o3-service@therapist-o3.iam.gserviceaccount.com
+
+# Bali evening (20:00 Asia/Makassar)  
+gcloud scheduler jobs create http bali-evening \
+  --schedule="0 20 * * *" --time-zone="Asia/Makassar" \
+  --uri="$BOT_URL/admin/send-proactive?timezone=Asia/Makassar&slot=evening" \
+  --oidc-service-account-email=therapist-o3-service@therapist-o3.iam.gserviceaccount.com
+
+# Moscow morning (10:00 Europe/Moscow)
+gcloud scheduler jobs create http moscow-morning \
+  --schedule="0 10 * * *" --time-zone="Europe/Moscow" \
+  --uri="$BOT_URL/admin/send-proactive?timezone=Europe/Moscow&slot=morning" \
+  --oidc-service-account-email=therapist-o3-service@therapist-o3.iam.gserviceaccount.com
+
+# Moscow evening (20:00 Europe/Moscow)
+gcloud scheduler jobs create http moscow-evening \
+  --schedule="0 20 * * *" --time-zone="Europe/Moscow" \
+  --uri="$BOT_URL/admin/send-proactive?timezone=Europe/Moscow&slot=evening" \
+  --oidc-service-account-email=therapist-o3-service@therapist-o3.iam.gserviceaccount.com
 ```
 
 ### Firestore Collections
@@ -135,25 +161,6 @@ The scheduler uses these Firestore collections:
     "updated_at": "timestamp"
   }
   ```
-
-### Deployment
-
-The scheduler runs as a separate Cloud Run service built from `Dockerfile.scheduler`. It operates independently from the main bot service and continuously monitors all users for proactive message opportunities.
-
-#### Scheduler Hot-fix Deploy
-
-To deploy the scheduler service manually:
-
-```bash
-# Deploy scheduler with same configuration as main bot
-./scripts/build_and_deploy_scheduler.sh
-```
-
-This script:
-- Builds Docker image from `Dockerfile.scheduler`
-- Copies environment variables from the main `therapist-o3` service
-- Deploys with `min-instances=1` for continuous operation
-- Uses the same service account for Firebase authentication
 
 ## Local Development & Testing
 

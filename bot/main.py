@@ -3,12 +3,14 @@ from fastapi import FastAPI, Request, HTTPException
 from telegram.ext import Application
 from telegram import Update
 from bot.telegram_router import setup_handlers
+from bot.proactive import send_for_timezone_slot
 from contextlib import asynccontextmanager
 from bot.error_middleware import add_error_middleware
 import logging
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -83,7 +85,42 @@ def build_app():
         """Health check endpoint for Cloud Run"""
         return {"status": "ok"}
 
-
+    @app.post("/admin/send-proactive")
+    async def send_proactive_messages(timezone: str, slot: str):
+        """
+        Send proactive messages to all users in a specific timezone and time slot.
+        Called by Cloud Scheduler jobs.
+        
+        Args:
+            timezone (str): Timezone string (e.g., 'Asia/Makassar', 'Europe/Moscow')
+            slot (str): Time slot ('morning' or 'evening')
+            
+        Returns:
+            dict: Results with 'sent' and 'skipped' counts
+        """
+        try:
+            # Validate slot parameter
+            if slot not in ['morning', 'evening']:
+                raise HTTPException(status_code=400, detail=f"Invalid slot: {slot}. Must be 'morning' or 'evening'")
+            
+            # Validate timezone parameter
+            valid_timezones = ['Asia/Makassar', 'Europe/Moscow']
+            if timezone not in valid_timezones:
+                raise HTTPException(status_code=400, detail=f"Invalid timezone: {timezone}. Must be one of {valid_timezones}")
+            
+            logger.info(f"Received proactive message request: timezone={timezone}, slot={slot}")
+            
+            # Send messages
+            result = send_for_timezone_slot(timezone, slot)
+            
+            logger.info(f"Proactive message request completed: {result}")
+            return result
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error in send_proactive_messages endpoint: {str(e)}")
+            raise HTTPException(status_code=500, detail="Internal server error")
 
     return app
 

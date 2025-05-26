@@ -1,0 +1,4 @@
+hash:b1e74342d83bf660bac5580c1d7f5579992455acedfa69e7aaf39ce3d0cad83d
+path:docs/ADR-0005-ci-cd-deferred.md | source:docs/ADR-0005-ci-cd-deferred.md | lastUpdated:2025-05-25T21:48:04.648760 | lines:56
+
+This ADR (Architecture Decision Record) documents the decision to defer implementing automated CI/CD for the project's two Cloud Run services (`therapist-o3`, `therapist-scheduler`). Instead of using Cloud Build triggers or GitHub Actions, the project will continue relying on existing manual deployment scripts (`scripts/build_and_deploy*.sh`). The rationale cited includes the project's small scale, preference for manual control, and avoiding setup complexity. While this approach offers lower complexity and cost, it requires manual effort and lacks automated testing. The decision is subject to review if release frequency or team size increases.

@@ -34,6 +34,11 @@
       "description": "Manages conversation history, triggers summarization, and stores summaries"
     },
     {
+      "name": "bot.proactive",
+      "path": "bot/proactive.py",
+      "description": "Proactive message delivery module for HTTP endpoint approach with timezone-based user targeting"
+    },
+    {
       "name": "scripts.proactive_messages",
       "path": "scripts/proactive_messages.py",
       "description": "Universal proactive message scheduler with per-user timezone support"

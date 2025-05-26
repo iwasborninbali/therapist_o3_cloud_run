@@ -1,0 +1,4 @@
+hash:66c9c2bedeea1ca18a1fb793bdcb9b26f985048505288d36807bce3fba3f0754
+path:scripts/proactive_messages_with_server.py | source:scripts/proactive_messages_with_server.py | lastUpdated:2025-05-25T21:42:20.308704 | lines:369
+
+This Python script implements a universal scheduler for sending proactive messages to Telegram bot users. It checks each user's local time based on their configured timezone and sends messages at specific morning and evening hours. The script generates these messages using an AI model, incorporating the user's conversation history and summaries for context. It includes logic to prevent sending duplicate messages within the same time slot on the same day and processes users in parallel. Additionally, it runs a simple HTTP health check server.

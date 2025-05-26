@@ -1,8 +1,10 @@
 # ADR-0003: Keep Proactive Scheduler in a Dedicated Cloud Run Service
 
-**Status**: Accepted  
+**Status**: Superseded by ADR-0007  
 **Date**: 2025-05-25  
-**Deciders**: o3, gemini_1  
+**Deciders**: o3, gemini_1
+
+> **Note**: This ADR has been superseded by ADR-0007: Cloud Scheduler Supersedes Separate Service. The separate scheduler service approach was replaced with Cloud Scheduler HTTP triggers for better cost efficiency and timing precision.  
 
 ## Context
 

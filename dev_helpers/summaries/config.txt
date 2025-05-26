@@ -1,4 +1,4 @@
-hash:8bd814c81d2a84d28e98cd56996e9a5bbcf70bc95ab9d263f865f37936d7c944
-path:config.py | source:config.py | lastUpdated:2025-05-25T20:44:39.331151 | lines:238
+hash:1aeb6e49bd287f8b72919180d61a6c4bc2bc9b6e32dee35d1e5d6af145020666
+path:config.py | source:config.py | lastUpdated:2025-05-25T21:41:36.693537 | lines:242
 
-This `config.py` file is responsible for loading application configuration from environment variables, including those in a `.env` file. It specifically handles Firebase credentials, detecting if running on Google Cloud Run or falling back to local methods like `FIREBASE_CRED_JSON` or `GOOGLE_APPLICATION_CREDENTIALS`. A `Config` class centralizes various settings such as API keys (Telegram, OpenAI, Gemini), Firebase project ID, retry parameters, and history thresholds, and includes a validation method. The file also defines a detailed `DEFAULT_SYSTEM_PROMPT` for an AI therapist role and constants for proactive messaging intervals.
+This `config.py` file manages application configuration by loading settings from environment variables using `dotenv`. It sets up basic logging and includes specific logic to handle Firebase credentials, prioritizing Cloud Run service identity or falling back to environment variables like `FIREBASE_CRED_JSON` or `GOOGLE_APPLICATION_CREDENTIALS`. A `Config` class encapsulates various settings for services like Telegram, OpenAI, and Gemini, providing a `validate` method to check for required variables. The file also defines constants and a detailed `DEFAULT_SYSTEM_PROMPT` string used for the application's AI persona.

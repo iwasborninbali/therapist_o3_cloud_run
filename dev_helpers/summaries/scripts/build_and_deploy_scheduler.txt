@@ -1,0 +1,4 @@
+hash:bea9b2fbdcca1b9c819cfed8b08ce41b17e301eaebbd840e4a38f1432b108bfe
+path:scripts/build_and_deploy_scheduler.sh | source:scripts/build_and_deploy_scheduler.sh | lastUpdated:2025-05-25T21:43:23.849203 | lines:64
+
+This bash script automates the build and deployment of the `therapist-scheduler` service to Google Cloud Run. It builds a Docker image using `Dockerfile.scheduler` and pushes it to Google Artifact Registry. The script then fetches environment variables from the existing `therapist-o3` Cloud Run service. Finally, it deploys the `therapist-scheduler` service to Cloud Run using the built image, the fetched environment variables, and specific configuration like service account and minimum instances.
