@@ -252,14 +252,9 @@ Deployment is manual via `scripts/build_and_deploy*.sh` scripts. This approach p
 ./scripts/build_and_deploy.sh
 ```
 
-**Deploy Scheduler Service:**
-```bash
-./scripts/build_and_deploy_scheduler.sh
-```
-
-Both scripts handle:
+This script handles:
 1. Building the Docker image
-2. Pushing to Google Container Registry
+2. Pushing to Google Container Registry  
 3. Deploying to Cloud Run with appropriate configuration
 4. Preserving environment variables and service account settings
 
@@ -298,17 +293,15 @@ The script also supports reading these values from environment variables: `TELEG
 │   ├── error_middleware.py    # Global error handling middleware
 │   └── retry_utils.py         # Utilities for API call retries
 ├── scripts/                   # Utility scripts
-│   ├── set_webhook.py         # Script to register Telegram webhook
-│   └── proactive_messages.py  # Universal proactive message scheduler
+│   └── set_webhook.py         # Script to register Telegram webhook
 ├── tests/                     # Automated tests
 │   ├── test_health.py
 │   ├── test_webhook_flow.py
 │   ├── test_history_rotation.py
-│   ├── test_proactive_schedule.py  # Proactive scheduler tests
+│   ├── test_proactive_endpoint.py  # Proactive HTTP endpoint tests
 │   └── test_container.py      # Docker container tests
 ├── config.py                  # Environment and configuration management
 ├── Dockerfile                 # Container definition for main bot service
-├── Dockerfile.scheduler       # Container definition for proactive scheduler
 ├── requirements.txt           # Python dependencies
 ├── .env.example               # Example environment variables template
 └── .env                       # Actual environment variables (not committed)
