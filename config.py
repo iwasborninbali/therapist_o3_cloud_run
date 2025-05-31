@@ -91,6 +91,12 @@ class Config:
     MESSAGES_TO_SUMMARIZE_COUNT = int(os.getenv("MESSAGES_TO_SUMMARIZE_COUNT", "30"))
     MAX_SUMMARIES = int(os.getenv("MAX_SUMMARIES", "5"))
 
+    # Tool Calling configuration
+    ENABLE_TOOL_CALLING = os.getenv("ENABLE_TOOL_CALLING", "false").lower() == "true"
+
+    # Idempotency configuration
+    IDEMPOTENCY_COLLECTION = os.getenv("IDEMPOTENCY_COLLECTION", "processed_updates")
+
     @classmethod
     def validate(cls):
         """Validate that all required configuration is present"""

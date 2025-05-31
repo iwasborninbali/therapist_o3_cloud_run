@@ -360,7 +360,7 @@ def generate_timestamp_info(user_id):
         
     except Exception as e:
         logger.error(f"Error generating timestamp info for user {user_id}: {str(e)}")
-        return f"Текущее время: ошибка получения времени"
+        return "Текущее время: ошибка получения времени"
 
 
 @retry_sync()
@@ -419,4 +419,126 @@ def set_last_proactive_meta(user_id, slot, date_iso):
         
     except Exception as e:
         logger.error(f"Error setting proactive meta for user {user_id}: {str(e)}")
+        return False
+
+
+@retry_sync()
+def add_note(user_id, content, timestamp, created_by="therapist_ai"):
+    """
+    Add a therapist note for a specific user.
+    
+    Args:
+        user_id (str): The user's Telegram ID
+        content (str): Note content
+        timestamp (str): ISO timestamp when note was created
+        created_by (str): Who created the note (default: "therapist_ai")
+        
+    Returns:
+        bool: Success status
+    """
+    try:
+        current_db = get_db()
+        notes_ref = current_db.collection("notes").document(user_id).collection("items")
+        
+        note_data = {
+            "content": content,
+            "timestamp": timestamp,
+            "created_by": created_by
+        }
+        
+        # Add note with auto-generated document ID
+        notes_ref.add(note_data)
+        
+        logger.info(f"Added note for user {user_id}: {content[:50]}...")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error adding note for user {user_id}: {str(e)}")
+        return False
+
+
+@retry_sync()
+def get_notes(user_id, limit=None):
+    """
+    Get therapist notes for a specific user.
+    
+    Args:
+        user_id (str): The user's Telegram ID
+        limit (int): Maximum number of notes to retrieve
+        
+    Returns:
+        list: List of note dictionaries, ordered by timestamp (newest first)
+    """
+    try:
+        current_db = get_db()
+        notes_ref = current_db.collection("notes").document(user_id).collection("items")
+        
+        # Query notes for this user, ordered by timestamp descending
+        query = notes_ref.order_by("timestamp", direction="DESCENDING")
+        if limit:
+            query = query.limit(limit)
+        docs = query.stream()
+        
+        notes = []
+        for doc in docs:
+            note_data = doc.to_dict()
+            note_data["firestore_doc_id"] = doc.id  # Include document ID
+            notes.append(note_data)
+            
+        return notes
+        
+    except Exception as e:
+        logger.error(f"Error getting notes for user {user_id}: {str(e)}")
+        return []
+
+
+@retry_sync()
+def has_processed_update(update_id):
+    """
+    Check if we've already processed this Telegram update_id.
+    
+    Args:
+        update_id (int): Telegram update ID
+        
+    Returns:
+        bool: True if already processed, False otherwise
+    """
+    try:
+        current_db = get_db()
+        processed_ref = current_db.collection("processed_updates").document(str(update_id))
+        doc = processed_ref.get()
+        
+        return doc.exists
+        
+    except Exception as e:
+        logger.error(f"Error checking processed update {update_id}: {str(e)}")
+        # In case of error, assume not processed to avoid losing messages
+        return False
+
+
+@retry_sync()
+def mark_update_processed(update_id):
+    """
+    Mark a Telegram update_id as processed to prevent duplicate handling.
+    
+    Args:
+        update_id (int): Telegram update ID
+        
+    Returns:
+        bool: Success status
+    """
+    try:
+        current_db = get_db()
+        processed_ref = current_db.collection("processed_updates").document(str(update_id))
+        
+        processed_ref.set({
+            "processed_at": datetime.utcnow(),
+            "update_id": update_id
+        })
+        
+        logger.debug(f"Marked update {update_id} as processed")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error marking update {update_id} as processed: {str(e)}")
         return False

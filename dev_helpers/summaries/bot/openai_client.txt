@@ -1,4 +1,4 @@
-hash:9f23f0157f42c6abe9827ba531fef8795d38f9275718727f4af29a50291e5e29
-path:bot/openai_client.py | source:bot/openai_client.py | lastUpdated:2025-05-23T18:11:39.603756 | lines:54
+hash:0924a169c2875d4547725fafdb552c0e2a94de77acb2da456669dfe984900b5c
+path:bot/openai_client.py | source:bot/openai_client.py | lastUpdated:2025-05-27T00:33:58.900225 | lines:120
 
-This file provides a Python wrapper for interacting with the OpenAI API, specifically for chat completions. It includes a function `get_client` for lazy initialization of the OpenAI client using an API key from a configuration object. The main function `get_response` sends a list of messages to the OpenAI chat completions endpoint (`client.chat.completions.create`), extracts the AI's response, and handles potential errors. It also utilizes a retry mechanism for API calls.
+This Python file (`openai_client.py`) provides an interface for interacting with the OpenAI Chat Completions API. It includes a lazy initialization of the OpenAI client using configuration settings and a retry mechanism for API calls. The main function, `get_response`, sends a list of messages to OpenAI and handles responses, including orchestrating tool execution if the model requests function calls and a `tools_manager` is provided. It executes the requested tools and makes a follow-up API call with the results to get the final response. The file returns the final AI-generated content or an error message.

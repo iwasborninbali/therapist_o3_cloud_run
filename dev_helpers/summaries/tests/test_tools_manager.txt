@@ -1,0 +1,4 @@
+hash:4eb2ff86ec8084de2ae8a706ea8ec5ba7c8c665990cf8dd31bc5a19865222421
+path:tests/test_tools_manager.py | source:tests/test_tools_manager.py | lastUpdated:2025-05-31T16:02:59.701728 | lines:211
+
+This file contains unit tests for the `ToolsManager` class using `pytest` and `unittest.mock`. It verifies the correct initialization of the `ToolsManager` and its ability to provide tool specifications compatible with OpenAI. The tests extensively cover the `dispatch_tool_calls` method, ensuring it correctly handles successful execution of the `update_notes` function, validates input (like empty content), manages errors (Firestore issues, unknown functions, invalid JSON), and prevents user ID injection. The tests use a mocked Firestore client to isolate the `ToolsManager` logic.

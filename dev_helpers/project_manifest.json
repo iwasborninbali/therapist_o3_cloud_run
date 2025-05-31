@@ -38,6 +38,11 @@
       "path": "bot/proactive.py",
       "description": "Proactive message delivery module for HTTP endpoint approach with timezone-based user targeting"
     },
+    {
+      "name": "bot.tools_manager",
+      "path": "bot/tools_manager.py",
+      "description": "Tools Manager for OpenAI function calling with registry pattern and safe user_id injection"
+    },
 
     {
       "name": "scripts.set_webhook",
@@ -82,6 +87,10 @@
     {
       "name": "proactive_meta",
       "description": "Tracks last sent dates for proactive messages to prevent duplicates"
+    },
+    {
+      "name": "notes",
+      "description": "Stores therapist notes created by AI tool calling with user_id, content, timestamp, and created_by fields"
     }
   ],
   "dependencies": [
@@ -108,7 +117,8 @@
       "TELEGRAM_BOT_TOKEN": "Set via gcloud CLI",
       "OPENAI_API_KEY": "Set via gcloud CLI", 
       "GEMINI_API_KEY": "Set via gcloud CLI",
-      "FIREBASE_PROJECT_ID": "ales-f75a1 (hardcoded)"
+      "FIREBASE_PROJECT_ID": "ales-f75a1 (hardcoded)",
+      "ENABLE_TOOL_CALLING": "false (default), set to true to enable AI function calling"
     },
          "scripts": {
        "set_env_vars.sh": "Sets environment variables via gcloud CLI",

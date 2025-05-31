@@ -1,4 +1,4 @@
-hash:0a2ccfa55ae47506053dcee371c15a73a2869c012d673e858819fe068d466f6a
-path:tests/test_webhook_flow.py | source:tests/test_webhook_flow.py | lastUpdated:2025-05-21T13:16:30.891679 | lines:62
+hash:73f8c330bb19aba469c21c978c75dd34337d91365f3d729360e392c686343c57
+path:tests/test_webhook_flow.py | source:tests/test_webhook_flow.py | lastUpdated:2025-05-31T15:31:02.099387 | lines:73
 
-This file contains pytest tests for a Telegram bot's webhook endpoint and message processing logic. It defines a mock Telegram update to simulate incoming messages. The `test_webhook_endpoint` function verifies that posting this mock update to the `/webhook` path returns a successful response (status 200). The `test_message_processing` function tests the internal handling of messages by mocking the database interaction (`add_message`) to ensure messages are correctly processed and recorded.
+This Python file contains pytest tests for a web application handling Telegram webhooks. It includes tests to ensure the `/webhook` endpoint responds immediately with a 200 OK status upon receiving a Telegram update. The file also tests the internal message processing flow, using mocking (`monkeypatch`) to verify that incoming messages are correctly handled and processed, such as being added to a simulated storage. It uses a mock `TELEGRAM_UPDATE` payload for testing. The tests check for fast response times and proper function calls within the processing logic.

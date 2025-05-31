@@ -1,8 +1,8 @@
 import os
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
 from telegram.ext import Application
 from telegram import Update
-from bot.telegram_router import setup_handlers
+from bot.telegram_router import setup_handlers, handle_update
 from bot.proactive import send_for_timezone_slot
 from contextlib import asynccontextmanager
 from bot.error_middleware import add_error_middleware
@@ -31,7 +31,7 @@ async def initialize_bot():
 
     try:
         telegram_bot = Application.builder().token(
-            Config.TELEGRAM_BOT_TOKEN).build()
+            Config.TELEGRAM_BOT_TOKEN).read_timeout(120).write_timeout(120).build()
         setup_handlers(telegram_bot)
         await telegram_bot.initialize()
         return telegram_bot
@@ -59,26 +59,23 @@ def build_app():
         }
 
     @app.post("/webhook")
-    async def webhook(request: Request):
-        """Handle Telegram webhook updates"""
+    async def webhook(request: Request, background_tasks: BackgroundTasks):
+        """Handle Telegram webhook updates with immediate acknowledgment"""
         # Get update data
         update_data = await request.json()
 
+        # Return OK immediately to Telegram
+        response = {"status": "ok"}
+
         # Handle the update differently in test mode
         if os.environ.get("TESTING") == "True" or app.state.telegram_bot is None:
-            # For testing, just return OK
-            # The test fixtures will handle mocking the appropriate components
-            return {"status": "ok"}
+            # For testing, just return OK without background processing
+            return response
 
-        # Create Update object from JSON data and process it
-        try:
-            update = Update.de_json(update_data, app.state.telegram_bot.bot)
-            await app.state.telegram_bot.process_update(update)
-        except Exception as e:
-            # Log the error but return OK to Telegram to avoid retries
-            logger.error(f"Error processing update: {e}")
+        # Schedule background processing of the update
+        background_tasks.add_task(handle_update, update_data, app.state.telegram_bot)
         
-        return {"status": "ok"}
+        return response
 
     @app.get("/health")
     async def health():

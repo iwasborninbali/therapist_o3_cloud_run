@@ -1,0 +1,4 @@
+hash:16ff09ea09c2f2f7d30f139fd909f4ca738e1c64ed09ef8c79ad5d30d514b6a5
+path:tests/test_update_notes_tool.py | source:tests/test_update_notes_tool.py | lastUpdated:2025-05-26T11:44:10.907179 | lines:299
+
+This Python file contains unit and integration tests for the `ToolsManager` class, focusing on the `update_notes` tool. It verifies the tool's registration, its specification format for OpenAI, and the correct handling of arguments and errors during dispatch. The tests cover successful note saving, validation of content, handling of Firestore errors, and secure injection of user ID and timestamp. Integration tests simulate the end-to-end OpenAI tool calling flow, ensuring tool calls are processed and the conversation continues appropriately. It also tests the scenario where tool calling is disabled.

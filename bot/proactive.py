@@ -180,7 +180,7 @@ def send_telegram_message(user_id: str, message: str) -> bool:
             "parse_mode": "HTML"
         }
         
-        response = requests.post(url, json=payload, timeout=10)
+        response = requests.post(url, json=payload, timeout=120)
         response.raise_for_status()
         
         result = response.json()

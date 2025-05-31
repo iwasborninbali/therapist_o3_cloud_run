@@ -1,5 +1,6 @@
 import pytest
 import json
+import time
 from unittest.mock import patch
 from bot.telegram_router import handle_message
 
@@ -26,15 +27,25 @@ TELEGRAM_UPDATE = {
 }
 
 
-def test_webhook_endpoint(client):
-    """Test that the webhook endpoint processes a Telegram update correctly"""
+def test_webhook_endpoint_fast_response(client):
+    """Test that the webhook endpoint returns 200 OK immediately without delay"""
+    start_time = time.time()
+    
     response = client.post(
         "/webhook",
         json=TELEGRAM_UPDATE
     )
-
+    
+    response_time = time.time() - start_time
+    
     # Check that the response status code is 200 (OK)
     assert response.status_code == 200
+    
+    # Check that response is immediate (< 1 second, should be ~100ms)
+    assert response_time < 1.0, f"Webhook response took {response_time:.3f}s, expected < 1s"
+    
+    # Check response format
+    assert response.json() == {"status": "ok"}
 
 
 def test_message_processing(client, monkeypatch, reset_mock_data):

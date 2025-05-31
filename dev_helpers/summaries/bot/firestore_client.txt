@@ -1,4 +1,4 @@
-hash:e7b2ba737bae54436508a7e5ce5b6dd703fba12b5619e8803cfeac2c692d4e68
-path:bot/firestore_client.py | source:bot/firestore_client.py | lastUpdated:2025-05-25T16:17:24.304661 | lines:422
+hash:390b9f8f11076968499e3f7b685d3923633db6b3edef80c7990bf8c2d639bc18
+path:bot/firestore_client.py | source:bot/firestore_client.py | lastUpdated:2025-05-31T15:32:04.358512 | lines:544
 
-This Python file acts as a client for interacting with Google Cloud Firestore, specifically designed to manage user-related data for an application (likely a bot). It provides functions to lazily initialize the Firestore client and perform common database operations. Key functionalities include storing and retrieving user conversation history, summaries, custom system prompts, and user settings like timezone preferences. All database interactions are wrapped with retry logic for resilience.
+This Python file acts as a client for Google Cloud Firestore, providing functions to manage user-specific data. It handles storing and retrieving conversation history, summaries, system prompts, and user settings like timezone. The file also includes utilities for generating timestamp information for AI context, tracking proactive message metadata, managing therapist notes, and marking processed Telegram updates. All database interactions incorporate retry logic and error handling.

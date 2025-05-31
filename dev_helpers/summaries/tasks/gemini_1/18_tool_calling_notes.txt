@@ -1,0 +1,4 @@
+hash:69025e77693d48c40d487beb7cf5a640cb5f5f3b32e1eef9cabd04afd51181a0
+path:tasks/gemini_1/18_tool_calling_notes.md | source:tasks/gemini_1/18_tool_calling_notes.md | lastUpdated:2025-05-31T16:03:11.964538 | lines:76
+
+This document details Task 18: implementing AI tool calling specifically for creating therapist notes. Its main purpose is to enable the AI to securely generate notes via function calls. This involves creating a new `tools_manager.py` module to register, validate, and dispatch tool calls, such as an "update_notes" tool. The module handles input validation using Pydantic, injects server-side context like user ID, and integrates with the existing `firestore_client.add_note` function. The `openai_client.py` is modified to process function call responses and invoke the tool manager, ensuring proper architecture separation, feature flag control, and comprehensive testing.

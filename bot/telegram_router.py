@@ -2,7 +2,7 @@ import logging
 # from datetime import datetime # Unused
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, MessageHandler, CommandHandler, CallbackQueryHandler, filters, ContextTypes
-# from telegram.error import TelegramError # Unused
+# from telegram.error import TelegramError  # Unused
 
 from bot.firestore_client import (
     get_history,
@@ -12,15 +12,61 @@ from bot.firestore_client import (
     set_system_prompt,
     get_user_settings,
     set_user_settings,
-    generate_timestamp_info
+    generate_timestamp_info,
+    get_notes,
+    has_processed_update,
+    mark_update_processed
 )
 from bot.openai_client import get_response
 from bot.retry_utils import retry_async
-from bot.history_manager import manage_history # Import the history manager
-from config import DEFAULT_SYSTEM_PROMPT
+from bot.history_manager import manage_history  # Import the history manager
+from bot.tools_manager import ToolsManager
+from config import DEFAULT_SYSTEM_PROMPT, Config
 
 logger = logging.getLogger(__name__)
 
+# Initialize tools manager lazily
+_tools_manager = None
+
+
+def get_tools_manager():
+    """Get ToolsManager instance, creating it if needed"""
+    global _tools_manager
+    if _tools_manager is None:
+        try:
+            # Pass the firestore_client module directly
+            import bot.firestore_client as firestore_client
+            _tools_manager = ToolsManager(firestore_client)
+            logger.info("ToolsManager initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize ToolsManager: {e}")
+            raise
+    return _tools_manager
+
+
+async def handle_update(update_data: dict, telegram_bot: Application) -> None:
+    """Handle Telegram update with idempotency check"""
+    try:
+        # Create Update object from JSON data
+        update = Update.de_json(update_data, telegram_bot.bot)
+        
+        # Get update_id for idempotency
+        update_id = update.update_id
+        
+        # Check if we've already processed this update
+        if has_processed_update(update_id):
+            logger.info(f"Update {update_id} already processed, skipping")
+            return
+            
+        # Mark update as processed before handling to prevent duplicates
+        mark_update_processed(update_id)
+        logger.info(f"Processing update {update_id}")
+        
+        # Process the update
+        await telegram_bot.process_update(update)
+        
+    except Exception as e:
+        logger.error(f"Error processing update in background: {e}")
 
 
 @retry_async()
@@ -237,10 +283,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     summary_contents = [s['content'] for s in summary_objects]
     logger.info(f"📚 Loaded {len(summary_contents)} summaries for user {user_id} context")
 
-    # 5. Generate timestamp information for context
+    # 5. Get therapist notes for context
+    notes_objects = get_notes(user_id)  # All notes, no limit
+    notes_contents = [f"Note ({n['timestamp']}): {n['content']}" for n in notes_objects]
+    logger.info(f"📝 Loaded {len(notes_contents)} notes for user {user_id} context")
+
+    # 6. Generate timestamp information for context
     timestamp_info = generate_timestamp_info(user_id)
 
-    # 6. Build the complete messages array for OpenAI
+    # 7. Build the complete messages array for OpenAI
     messages_for_openai = []
     messages_for_openai.append({"role": "system", "content": system_prompt})
     for i, summary_content in enumerate(summary_contents):
@@ -249,6 +300,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             "content": f"Previous conversation summary: {summary_content}"
         })
         logger.debug(f"📚 Added summary {i+1} to context for user {user_id}: {summary_content[:100]}...")
+    
+    # Add therapist notes as system context
+    if notes_contents:
+        notes_context = "Previous therapist notes:\n" + "\n".join(notes_contents)
+        messages_for_openai.append({
+            "role": "system",
+            "content": notes_context
+        })
+        logger.debug(f"📝 Added {len(notes_contents)} notes to context for user {user_id}")
+    
     # Add timestamp information as system message
     messages_for_openai.append({
         "role": "system", 
@@ -257,8 +318,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     for msg in current_history_for_openai:
         messages_for_openai.append({"role": msg["role"], "content": msg["content"]})
 
-    # 7. Get response from OpenAI
-    ai_response = get_response(messages_for_openai)
+    # 8. Get response from OpenAI with tool calling support
+    tools_manager = get_tools_manager() if Config.ENABLE_TOOL_CALLING else None
+    ai_response = get_response(messages_for_openai, tools_manager=tools_manager, user_id=user_id)
 
     # 8. Send the response back to the user
     await safe_send_message(context, update.effective_chat.id, ai_response)
