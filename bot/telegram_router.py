@@ -69,10 +69,51 @@ async def handle_update(update_data: dict, telegram_bot: Application) -> None:
         logger.error(f"Error processing update in background: {e}")
 
 
+def split_long_message(text, max_length=4000):
+    """
+    Split a long message into chunks that fit Telegram's limits
+    
+    Args:
+        text (str): The message text to split
+        max_length (int): Maximum length per chunk (default 4000 to be safe)
+    
+    Returns:
+        list: List of message chunks
+    """
+    if len(text) <= max_length:
+        return [text]
+    
+    chunks = []
+    remaining = text
+    
+    while remaining:
+        if len(remaining) <= max_length:
+            chunks.append(remaining)
+            break
+            
+        # Find a good breaking point (end of sentence, then word)
+        chunk = remaining[:max_length]
+        
+        # Try to break at sentence end
+        sentence_end = max(chunk.rfind('.'), chunk.rfind('!'), chunk.rfind('?'))
+        if sentence_end > max_length * 0.5:  # If we found a sentence end in the latter half
+            break_point = sentence_end + 1
+        else:
+            # Try to break at word boundary
+            break_point = chunk.rfind(' ')
+            if break_point == -1:  # No space found, force break
+                break_point = max_length
+        
+        chunks.append(remaining[:break_point].strip())
+        remaining = remaining[break_point:].strip()
+    
+    return chunks
+
+
 @retry_async()
 async def safe_send_message(context, chat_id, text, **kwargs):
     """
-    Send a message with retry capability for handling temporary failures
+    Send a message with retry capability and automatic splitting for long messages
 
     Args:
         context: Telegram context
@@ -81,10 +122,22 @@ async def safe_send_message(context, chat_id, text, **kwargs):
         **kwargs: Additional arguments for send_message
 
     Returns:
-        The message object if successful
+        The last message object if successful
     """
     try:
-        return await context.bot.send_message(chat_id=chat_id, text=text, **kwargs)
+        # Split message if it's too long
+        chunks = split_long_message(text)
+        
+        last_message = None
+        for i, chunk in enumerate(chunks):
+            if i == 0:
+                # First chunk uses original kwargs
+                last_message = await context.bot.send_message(chat_id=chat_id, text=chunk, **kwargs)
+            else:
+                # Subsequent chunks without special formatting
+                last_message = await context.bot.send_message(chat_id=chat_id, text=chunk)
+        
+        return last_message
     except Exception as e:
         logger.error(f"Failed to send message to {chat_id}: {str(e)}")
         raise  # Let the retry decorator handle retrying
