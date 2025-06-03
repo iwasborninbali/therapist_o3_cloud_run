@@ -176,8 +176,7 @@ def send_telegram_message(user_id: str, message: str) -> bool:
         url = f"https://api.telegram.org/bot{Config.TELEGRAM_BOT_TOKEN}/sendMessage"
         payload = {
             "chat_id": user_id,
-            "text": message,
-            "parse_mode": "HTML"
+            "text": message
         }
         
         response = requests.post(url, json=payload, timeout=120)
@@ -192,7 +191,8 @@ def send_telegram_message(user_id: str, message: str) -> bool:
             return False
             
     except Exception as e:
-        logger.error(f"Error sending Telegram message: {e}")
+        logger.error(f"Error sending Telegram message to {user_id}: {e}")
+        logger.error(f"Message content: {message[:200]}...")  # First 200 chars for debugging
         return False
 
 
