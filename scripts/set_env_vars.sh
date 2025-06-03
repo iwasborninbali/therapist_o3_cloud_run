@@ -87,7 +87,8 @@ gcloud run services update ${SERVICE_NAME} \
     --update-env-vars="OPENAI_API_KEY=${OPENAI_API_KEY}" \
     --update-env-vars="GEMINI_API_KEY=${GEMINI_API_KEY}" \
     --update-env-vars="FIREBASE_PROJECT_ID=ales-f75a1" \
-    --update-env-vars="FIREBASE_CRED_JSON=${FIREBASE_CRED_JSON}"
+    --update-env-vars="FIREBASE_CRED_JSON=${FIREBASE_CRED_JSON}" \
+    --update-env-vars="ENABLE_TOOL_CALLING=true"
 
 echo -e "${GREEN}✅ Environment variables updated successfully!${NC}"
 

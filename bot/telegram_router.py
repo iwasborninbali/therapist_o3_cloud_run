@@ -1,4 +1,6 @@
 import logging
+import asyncio
+import time
 # from datetime import datetime # Unused
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, MessageHandler, CommandHandler, CallbackQueryHandler, filters, ContextTypes
@@ -67,6 +69,22 @@ async def handle_update(update_data: dict, telegram_bot: Application) -> None:
         
     except Exception as e:
         logger.error(f"Error processing update in background: {e}")
+
+
+async def keep_typing(context, chat_id, interval=5):
+    """
+    Continuously send typing action every interval seconds
+    Used during long operations like OpenAI requests
+    """
+    try:
+        while True:
+            await context.bot.send_chat_action(chat_id=chat_id, action='typing')
+            await asyncio.sleep(interval)
+    except asyncio.CancelledError:
+        # This is expected when the task is cancelled
+        pass
+    except Exception as e:
+        logger.debug(f"Typing task error (not critical): {e}")
 
 
 def split_long_message(text, max_length=4000):
@@ -371,9 +389,27 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     for msg in current_history_for_openai:
         messages_for_openai.append({"role": msg["role"], "content": msg["content"]})
 
-    # 8. Get response from OpenAI with tool calling support
-    tools_manager = get_tools_manager() if Config.ENABLE_TOOL_CALLING else None
-    ai_response = get_response(messages_for_openai, tools_manager=tools_manager, user_id=user_id)
+    # 8. Show typing indicator and get response from OpenAI with tool calling support
+    typing_task = None
+    try:
+        # Start continuous typing indicator
+        typing_task = asyncio.create_task(keep_typing(context, update.effective_chat.id))
+        logger.info(f"Started continuous typing indicator for user {user_id}")
+        
+        tools_manager = get_tools_manager() if Config.ENABLE_TOOL_CALLING else None
+        logger.info(f"Sending request to OpenAI for user {user_id}")
+        ai_response = get_response(messages_for_openai, tools_manager=tools_manager, user_id=user_id)
+        logger.info(f"Received response from OpenAI for user {user_id}")
+        
+    finally:
+        # Stop typing indicator
+        if typing_task:
+            typing_task.cancel()
+            try:
+                await typing_task
+            except asyncio.CancelledError:
+                pass
+            logger.debug(f"Stopped typing indicator for user {user_id}")
 
     # 8. Send the response back to the user
     await safe_send_message(context, update.effective_chat.id, ai_response)
