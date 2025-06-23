@@ -1,0 +1,218 @@
+2025-06-24 06:15:45,799 - root - INFO - Local development - using GOOGLE_APPLICATION_CREDENTIALS: ales-f75a1-firebase-adminsdk-fbsvc-e008504e79.json
+2025-06-24 06:15:46,279 - __main__ - INFO - 🚀 Starting local bot with polling...
+2025-06-24 06:15:46,279 - __main__ - INFO - 📝 Logs will be saved to local_bot.log
+2025-06-24 06:15:46,290 - bot.telegram_router - INFO - Telegram message handlers have been set up
+2025-06-24 06:15:46,290 - bot.error_middleware - INFO - Telegram error handler has been set up
+2025-06-24 06:15:46,290 - bot.telegram_router - INFO - FactologyManager initialized successfully
+2025-06-24 06:15:46,290 - __main__ - INFO - FactologyManager initialized for local testing
+2025-06-24 06:15:46,290 - __main__ - INFO - ✅ Bot is running in LOCAL POLLING mode
+2025-06-24 06:15:46,290 - __main__ - INFO - 📱 Send a message to your bot to test OpenAI timing
+2025-06-24 06:15:46,290 - __main__ - INFO - 🛑 Press Ctrl+C to stop
+2025-06-24 06:15:46,917 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getMe "HTTP/1.1 200 OK"
+2025-06-24 06:15:47,121 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/deleteWebhook "HTTP/1.1 200 OK"
+2025-06-24 06:15:47,125 - telegram.ext.Application - INFO - Application started
+2025-06-24 06:15:57,755 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:16:08,060 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:16:18,276 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:16:28,526 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:16:38,757 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:16:49,093 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:16:59,332 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:17:09,548 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:17:19,830 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:17:30,067 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:17:40,501 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:17:50,959 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:18:01,289 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:18:11,504 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:18:21,780 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:18:32,112 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:18:42,354 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:18:52,689 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:18:54,094 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:18:54,095 - bot.telegram_router - INFO - [TIMING] Message handling started for user 579160790
+2025-06-24 06:18:54,095 - bot.firestore_client - INFO - Initializing Firestore client (attempt 1/3)
+2025-06-24 06:18:54,185 - bot.firestore_client - INFO - Testing Firestore connection...
+2025-06-24 06:18:54,774 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:18:54,814 - bot.firestore_client - INFO - Firestore client initialized successfully
+2025-06-24 06:18:56,781 - bot.telegram_router - INFO - [TIMING] DB operations took 2.69s
+2025-06-24 06:18:56,784 - bot.telegram_router - INFO - [TIMING] Payload building took 0.00s
+2025-06-24 06:18:56,785 - bot.telegram_router - INFO - [TIMING] Starting o4-mini request...
+2025-06-24 06:18:56,785 - bot.openai_client - INFO - Requesting summary from o4-mini.
+2025-06-24 06:18:56,785 - bot.openai_client - INFO - [OPENAI-TIMING] Starting o4-mini request at 1750717136.7852921
+2025-06-24 06:18:56,799 - bot.openai_client - INFO - [OPENAI-TIMING] About to call OpenAI API...
+2025-06-24 06:19:00,427 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:19:04,308 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:19:06,106 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:19:11,717 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:19:14,616 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:19:17,399 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:19:23,207 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:19:24,824 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:19:28,966 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:19:28,974 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-24 06:19:28,990 - bot.openai_client - INFO - [OPENAI-TIMING] OpenAI API call completed in 32.19s
+2025-06-24 06:19:28,991 - bot.openai_client - INFO - o4-mini response validated successfully.
+2025-06-24 06:19:28,991 - bot.openai_client - INFO - [OPENAI-TIMING] Parsing took 0.00s
+2025-06-24 06:19:28,991 - bot.openai_client - INFO - [OPENAI-TIMING] Total o4-mini operation took 32.21s
+2025-06-24 06:19:28,991 - bot.telegram_router - INFO - [TIMING] o4-mini request took 32.21s
+2025-06-24 06:19:28,991 - bot.telegram_router - INFO - Successfully got summary from o4-mini for user 579160790
+2025-06-24 06:19:29,289 - bot.factology_manager - INFO - Incremented hot score for fact 86
+2025-06-24 06:19:30,427 - bot.factology_manager - INFO - Incremented hot score for fact 85
+2025-06-24 06:19:30,746 - bot.factology_manager - INFO - Incremented hot score for fact 34
+2025-06-24 06:19:31,773 - bot.factology_manager - INFO - Incremented hot score for fact 9
+2025-06-24 06:19:34,567 - bot.firestore_client - INFO - Successfully deleted 1 facts for user 579160790.
+2025-06-24 06:19:34,567 - bot.factology_manager - INFO - Merged facts ['86'] into fact 85.
+2025-06-24 06:19:37,336 - bot.firestore_client - INFO - Successfully deleted 1 facts for user 579160790.
+2025-06-24 06:19:37,337 - bot.factology_manager - INFO - Merged facts ['9'] into fact 34.
+2025-06-24 06:19:38,769 - bot.prompt_builder - INFO - Loaded 6 messages from history.
+2025-06-24 06:19:38,772 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:19:39,417 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:19:45,043 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:19:49,020 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:19:50,687 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:19:56,305 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:19:59,370 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:20:02,053 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:20:07,961 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:20:09,593 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:20:13,600 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:20:17,169 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-24 06:20:18,909 - bot.factology_manager - INFO - Saved new fact for user 579160790.
+2025-06-24 06:20:21,253 - bot.factology_manager - INFO - Saved new fact for user 579160790.
+2025-06-24 06:20:23,134 - bot.factology_manager - INFO - Saved new fact for user 579160790.
+2025-06-24 06:20:25,374 - bot.factology_manager - INFO - Saved new fact for user 579160790.
+2025-06-24 06:20:25,375 - bot.telegram_router - INFO - Saved 4 new fact(s) for user 579160790.
+2025-06-24 06:20:25,378 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:20:25,997 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:20:26,018 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendMessage "HTTP/1.1 200 OK"
+2025-06-24 06:20:35,699 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:20:45,929 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:20:56,141 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:21:06,354 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:21:16,693 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:21:26,919 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:21:37,129 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:21:47,345 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:21:57,635 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:22:07,977 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:22:14,276 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:22:14,280 - bot.telegram_router - INFO - [TIMING] Message handling started for user 579160790
+2025-06-24 06:22:14,897 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:22:16,085 - bot.telegram_router - INFO - [TIMING] DB operations took 1.80s
+2025-06-24 06:22:16,087 - bot.telegram_router - INFO - [TIMING] Payload building took 0.00s
+2025-06-24 06:22:16,087 - bot.telegram_router - INFO - [TIMING] Starting o4-mini request...
+2025-06-24 06:22:16,087 - bot.openai_client - INFO - Requesting summary from o4-mini.
+2025-06-24 06:22:16,087 - bot.openai_client - INFO - [OPENAI-TIMING] Starting o4-mini request at 1750717336.087925
+2025-06-24 06:22:16,087 - bot.openai_client - INFO - [OPENAI-TIMING] About to call OpenAI API...
+2025-06-24 06:22:20,518 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:22:24,506 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:22:26,120 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:22:31,738 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:22:34,727 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:22:37,430 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:22:43,057 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:22:44,950 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:22:48,675 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:22:50,138 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-24 06:22:50,141 - bot.openai_client - INFO - [OPENAI-TIMING] OpenAI API call completed in 34.05s
+2025-06-24 06:22:50,141 - bot.openai_client - INFO - o4-mini response validated successfully.
+2025-06-24 06:22:50,141 - bot.openai_client - INFO - [OPENAI-TIMING] Parsing took 0.00s
+2025-06-24 06:22:50,141 - bot.openai_client - INFO - [OPENAI-TIMING] Total o4-mini operation took 34.05s
+2025-06-24 06:22:50,141 - bot.telegram_router - INFO - [TIMING] o4-mini request took 34.05s
+2025-06-24 06:22:50,141 - bot.telegram_router - INFO - Successfully got summary from o4-mini for user 579160790
+2025-06-24 06:22:50,473 - bot.factology_manager - INFO - Incremented hot score for fact 87
+2025-06-24 06:22:51,505 - bot.factology_manager - INFO - Incremented hot score for fact 88
+2025-06-24 06:22:51,809 - bot.factology_manager - INFO - Incremented hot score for fact 89
+2025-06-24 06:22:52,851 - bot.factology_manager - INFO - Incremented hot score for fact 90
+2025-06-24 06:22:53,253 - bot.factology_manager - INFO - Incremented hot score for fact 85
+2025-06-24 06:22:54,254 - bot.factology_manager - INFO - Incremented hot score for fact 13
+2025-06-24 06:22:54,607 - bot.factology_manager - INFO - Incremented hot score for fact 43
+2025-06-24 06:22:57,424 - bot.firestore_client - INFO - Successfully deleted 1 facts for user 579160790.
+2025-06-24 06:22:57,424 - bot.factology_manager - INFO - Merged facts ['87'] into fact 34.
+2025-06-24 06:23:01,242 - bot.firestore_client - INFO - Successfully deleted 2 facts for user 579160790.
+2025-06-24 06:23:01,243 - bot.factology_manager - INFO - Merged facts ['8', '16'] into fact 43.
+2025-06-24 06:23:02,648 - bot.prompt_builder - INFO - Loaded 6 messages from history.
+2025-06-24 06:23:02,656 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:23:03,286 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:23:08,952 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:23:13,001 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:23:14,572 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:23:18,205 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-06-24 06:23:19,898 - bot.factology_manager - INFO - Saved new fact for user 579160790.
+2025-06-24 06:23:22,512 - bot.factology_manager - INFO - Saved new fact for user 579160790.
+2025-06-24 06:23:22,513 - bot.telegram_router - INFO - Saved 2 new fact(s) for user 579160790.
+2025-06-24 06:23:23,146 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendChatAction "HTTP/1.1 200 OK"
+2025-06-24 06:23:23,167 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/sendMessage "HTTP/1.1 200 OK"
+2025-06-24 06:23:27,229 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:23:37,470 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:23:47,702 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:23:57,913 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:24:08,138 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:24:18,354 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:24:28,576 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:24:38,808 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:24:49,070 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:24:59,334 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:25:09,545 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:25:19,758 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:25:29,976 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:25:40,188 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:25:50,408 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:26:00,644 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:26:11,064 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:26:21,349 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:26:31,570 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:26:41,782 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:26:51,994 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:27:02,212 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:27:12,520 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:27:22,748 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:27:32,989 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:27:43,238 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:27:53,444 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:28:03,694 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:28:13,902 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:28:24,115 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:28:34,349 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:28:44,564 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:28:54,788 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:29:05,056 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:29:15,266 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:29:25,484 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 200 OK"
+2025-06-24 06:29:30,470 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 409 Conflict"
+2025-06-24 06:29:30,471 - telegram.ext.Updater - ERROR - Error while getting Updates: Conflict: terminated by setWebhook request
+2025-06-24 06:29:30,472 - bot.error_middleware - ERROR - {"level": "ERROR", "message": "Telegram bot error: Conflict: terminated by setWebhook request", "exception_type": "Conflict", "stack_trace": "NoneType: None\n"}
+2025-06-24 06:29:34,694 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 409 Conflict"
+2025-06-24 06:29:34,696 - telegram.ext.Updater - ERROR - Error while getting Updates: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-06-24 06:29:34,696 - bot.error_middleware - ERROR - {"level": "ERROR", "message": "Telegram bot error: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first", "exception_type": "Conflict", "stack_trace": "NoneType: None\n"}
+2025-06-24 06:29:36,504 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 409 Conflict"
+2025-06-24 06:29:36,505 - telegram.ext.Updater - ERROR - Error while getting Updates: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-06-24 06:29:36,505 - bot.error_middleware - ERROR - {"level": "ERROR", "message": "Telegram bot error: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first", "exception_type": "Conflict", "stack_trace": "NoneType: None\n"}
+2025-06-24 06:29:41,975 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 409 Conflict"
+2025-06-24 06:29:41,975 - telegram.ext.Updater - ERROR - Error while getting Updates: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-06-24 06:29:41,975 - bot.error_middleware - ERROR - {"level": "ERROR", "message": "Telegram bot error: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first", "exception_type": "Conflict", "stack_trace": "NoneType: None\n"}
+2025-06-24 06:29:45,621 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 409 Conflict"
+2025-06-24 06:29:45,622 - telegram.ext.Updater - ERROR - Error while getting Updates: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-06-24 06:29:45,622 - bot.error_middleware - ERROR - {"level": "ERROR", "message": "Telegram bot error: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first", "exception_type": "Conflict", "stack_trace": "NoneType: None\n"}
+2025-06-24 06:29:51,289 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 409 Conflict"
+2025-06-24 06:29:51,291 - telegram.ext.Updater - ERROR - Error while getting Updates: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-06-24 06:29:51,291 - bot.error_middleware - ERROR - {"level": "ERROR", "message": "Telegram bot error: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first", "exception_type": "Conflict", "stack_trace": "NoneType: None\n"}
+2025-06-24 06:29:59,502 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 409 Conflict"
+2025-06-24 06:29:59,503 - telegram.ext.Updater - ERROR - Error while getting Updates: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-06-24 06:29:59,504 - bot.error_middleware - ERROR - {"level": "ERROR", "message": "Telegram bot error: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first", "exception_type": "Conflict", "stack_trace": "NoneType: None\n"}
+2025-06-24 06:30:11,555 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 409 Conflict"
+2025-06-24 06:30:11,556 - telegram.ext.Updater - ERROR - Error while getting Updates: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-06-24 06:30:11,557 - bot.error_middleware - ERROR - {"level": "ERROR", "message": "Telegram bot error: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first", "exception_type": "Conflict", "stack_trace": "NoneType: None\n"}
+2025-06-24 06:30:29,242 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 409 Conflict"
+2025-06-24 06:30:29,243 - telegram.ext.Updater - ERROR - Error while getting Updates: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-06-24 06:30:29,243 - bot.error_middleware - ERROR - {"level": "ERROR", "message": "Telegram bot error: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first", "exception_type": "Conflict", "stack_trace": "NoneType: None\n"}
+2025-06-24 06:30:55,646 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 409 Conflict"
+2025-06-24 06:30:55,647 - telegram.ext.Updater - ERROR - Error while getting Updates: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-06-24 06:30:55,648 - bot.error_middleware - ERROR - {"level": "ERROR", "message": "Telegram bot error: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first", "exception_type": "Conflict", "stack_trace": "NoneType: None\n"}
+2025-06-24 06:31:26,242 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 409 Conflict"
+2025-06-24 06:31:26,243 - telegram.ext.Updater - ERROR - Error while getting Updates: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-06-24 06:31:26,244 - bot.error_middleware - ERROR - {"level": "ERROR", "message": "Telegram bot error: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first", "exception_type": "Conflict", "stack_trace": "NoneType: None\n"}
+2025-06-24 06:31:56,852 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7808595383:AAGKx2SgT25wNMmGZEy9Ye8r7qknMJ2wQQM/getUpdates "HTTP/1.1 409 Conflict"
+2025-06-24 06:31:56,853 - telegram.ext.Updater - ERROR - Error while getting Updates: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first
+2025-06-24 06:31:56,854 - bot.error_middleware - ERROR - {"level": "ERROR", "message": "Telegram bot error: Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first", "exception_type": "Conflict", "stack_trace": "NoneType: None\n"}

@@ -12,6 +12,7 @@ COPY . .
 # Set environment variables
 ENV PORT=8080
 ENV PYTHONUNBUFFERED=1
+ENV GOOGLE_APPLICATION_CREDENTIALS=/app/ales-f75a1-firebase-adminsdk-fbsvc-e008504e79.json
 
 # Expose the port
 EXPOSE ${PORT}

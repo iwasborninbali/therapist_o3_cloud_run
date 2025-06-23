@@ -1,4 +1,0 @@
-hash:872c551cad875ea9424cd317fefadd708d2cb8731f13aceba2fb7c3a708851c8
-path:tasks/gemini_1/05_cloud_run_ci_cd.md | source:tasks/gemini_1/05_cloud_run_ci_cd.md | lastUpdated:2025-05-21T13:27:42.703329 | lines:75
-
-This file describes the task of implementing a CI/CD pipeline for deploying a Dockerized application to Google Cloud Run using GitHub Actions. The main purpose is to automate the build, push, and deployment process upon pushes to the `main` branch. It details creating a GitHub Actions workflow (`deploy.yml`) that authenticates with GCP, builds a Docker image, pushes it to Artifact Registry, and deploys it to a Cloud Run service, passing environment variables from GitHub Secrets. The task also includes documenting this setup in an ADR (`ADR-0002`) and updating the project's `README.md`. Key considerations like handling Firebase credentials and required GCP service account permissions are noted.

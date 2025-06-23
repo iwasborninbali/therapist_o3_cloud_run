@@ -1,4 +1,0 @@
-hash:8a317cb93e3288ba99137ee60f6e628b8be3a6a4783b873c8a77b698010e13b4
-path:scripts/set_env_vars.sh | source:scripts/set_env_vars.sh | lastUpdated:2025-05-25T18:59:52.123288 | lines:107
-
-This shell script, `set_env_vars.sh`, is designed to update environment variables for a specific Google Cloud Run service (`therapist-o3`) without requiring a service redeployment. It verifies `gcloud` CLI installation, authentication, and sets the active project. The script checks for required environment variables like API keys and loads Firebase credentials from an environment variable or a local file. It then uses the `gcloud run services update` command to apply these variables to the specified Cloud Run service. Finally, it retrieves the service URL and optionally runs a Python script to configure a Telegram webhook.

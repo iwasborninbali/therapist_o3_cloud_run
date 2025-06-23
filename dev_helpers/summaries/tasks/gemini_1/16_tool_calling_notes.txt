@@ -1,4 +1,0 @@
-hash:ec71503b60d05c5d2ef586e8a976454c70c6cfefdbb3755f980d4aa6ad100a39
-path:tasks/gemini_1/16_tool_calling_notes.md | source:tasks/gemini_1/16_tool_calling_notes.md | lastUpdated:2025-05-26T11:19:19.220448 | lines:89
-
-This document outlines the implementation plan for adding tool-calling functionality to a therapist AI, allowing it to autonomously update user notes. A dedicated "Tools Manager" layer is introduced to handle tool dispatching, ensuring server-side injection of user ID and timestamp for security. The implementation involves modifying OpenAI and Firestore clients to support tool calls and note storage, respectively. Key files include `tools_manager.py`, `firestore_client.py`, and `openai_client.py`. The feature is controlled by a feature flag (`ENABLE_TOOL_CALLING`) and includes various safety measures and testing strategies.

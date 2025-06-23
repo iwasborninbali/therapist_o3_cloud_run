@@ -1,4 +1,0 @@
-hash:5d5fe58b48da5d3ff74acfbb6223a4fa987037519049f89ac5b8cf84bd9c73a5
-path:docs/ADR-0007-cloud-scheduler-supersedes-separate-service.md | source:docs/ADR-0007-cloud-scheduler-supersedes-separate-service.md | lastUpdated:2025-05-26T10:58:42.375104 | lines:86
-
-This Architectural Decision Record (ADR-0007) documents the decision to replace a separate, always-on Cloud Run service previously used for proactive message scheduling. The prior approach incurred continuous costs and lacked precise timing. The new architecture leverages Cloud Scheduler to trigger a dedicated HTTP endpoint (`/admin/send-proactive`) on the main bot service. This change reduces costs, improves scheduling precision, simplifies the overall architecture, and enhances reliability. The decision is accepted, implemented, and deployed.

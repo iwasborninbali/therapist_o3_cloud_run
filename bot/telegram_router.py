@@ -1,49 +1,55 @@
 import logging
 import asyncio
-import time
+import json
+
 # from datetime import datetime # Unused
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, MessageHandler, CommandHandler, CallbackQueryHandler, filters, ContextTypes
+from telegram import Update
+from telegram.ext import (
+    Application,
+    MessageHandler,
+    CommandHandler,
+    filters,
+    ContextTypes,
+)
+
 # from telegram.error import TelegramError  # Unused
 
 from bot.firestore_client import (
     get_history,
-    add_message,
-    get_summaries,
+    get_history_async,
+    add_message_with_timestamp,
     get_system_prompt,
     set_system_prompt,
-    get_user_settings,
-    set_user_settings,
-    generate_timestamp_info,
-    get_notes,
+    get_facts,
+    get_facts_async,
     has_processed_update,
-    mark_update_processed
+    mark_update_processed,
 )
-from bot.openai_client import get_response
+from bot.openai_client import get_o4_mini_summary, get_o3_response_tool
 from bot.retry_utils import retry_async
-from bot.history_manager import manage_history  # Import the history manager
-from bot.tools_manager import ToolsManager
-from config import DEFAULT_SYSTEM_PROMPT, Config
+from bot.prompt_builder import build_o4_mini_payload, build_payload
+from bot.factology_manager import FactologyManager
+from bot.schemas import AnalysisResult
 
 logger = logging.getLogger(__name__)
 
-# Initialize tools manager lazily
-_tools_manager = None
+# Initialize factology manager lazily
+_factology_manager = None
 
 
-def get_tools_manager():
-    """Get ToolsManager instance, creating it if needed"""
-    global _tools_manager
-    if _tools_manager is None:
+def get_factology_manager():
+    """Get FactologyManager instance, creating it if needed"""
+    global _factology_manager
+    if _factology_manager is None:
         try:
-            # Pass the firestore_client module directly
             import bot.firestore_client as firestore_client
-            _tools_manager = ToolsManager(firestore_client)
-            logger.info("ToolsManager initialized successfully")
+
+            _factology_manager = FactologyManager(firestore_client)
+            logger.info("FactologyManager initialized successfully")
         except Exception as e:
-            logger.error(f"Failed to initialize ToolsManager: {e}")
+            logger.error(f"Failed to initialize FactologyManager: {e}")
             raise
-    return _tools_manager
+    return _factology_manager
 
 
 async def handle_update(update_data: dict, telegram_bot: Application) -> None:
@@ -51,22 +57,22 @@ async def handle_update(update_data: dict, telegram_bot: Application) -> None:
     try:
         # Create Update object from JSON data
         update = Update.de_json(update_data, telegram_bot.bot)
-        
+
         # Get update_id for idempotency
         update_id = update.update_id
-        
+
         # Check if we've already processed this update
         if has_processed_update(update_id):
             logger.info(f"Update {update_id} already processed, skipping")
             return
-            
+
         # Mark update as processed before handling to prevent duplicates
         mark_update_processed(update_id)
         logger.info(f"Processing update {update_id}")
-        
+
         # Process the update
         await telegram_bot.process_update(update)
-        
+
     except Exception as e:
         logger.error(f"Error processing update in background: {e}")
 
@@ -78,7 +84,7 @@ async def keep_typing(context, chat_id, interval=5):
     """
     try:
         while True:
-            await context.bot.send_chat_action(chat_id=chat_id, action='typing')
+            await context.bot.send_chat_action(chat_id=chat_id, action="typing")
             await asyncio.sleep(interval)
     except asyncio.CancelledError:
         # This is expected when the task is cancelled
@@ -90,41 +96,43 @@ async def keep_typing(context, chat_id, interval=5):
 def split_long_message(text, max_length=4000):
     """
     Split a long message into chunks that fit Telegram's limits
-    
+
     Args:
         text (str): The message text to split
         max_length (int): Maximum length per chunk (default 4000 to be safe)
-    
+
     Returns:
         list: List of message chunks
     """
     if len(text) <= max_length:
         return [text]
-    
+
     chunks = []
     remaining = text
-    
+
     while remaining:
         if len(remaining) <= max_length:
             chunks.append(remaining)
             break
-            
+
         # Find a good breaking point (end of sentence, then word)
         chunk = remaining[:max_length]
-        
+
         # Try to break at sentence end
-        sentence_end = max(chunk.rfind('.'), chunk.rfind('!'), chunk.rfind('?'))
-        if sentence_end > max_length * 0.5:  # If we found a sentence end in the latter half
+        sentence_end = max(chunk.rfind("."), chunk.rfind("!"), chunk.rfind("?"))
+        if (
+            sentence_end > max_length * 0.5
+        ):  # If we found a sentence end in the latter half
             break_point = sentence_end + 1
         else:
             # Try to break at word boundary
-            break_point = chunk.rfind(' ')
+            break_point = chunk.rfind(" ")
             if break_point == -1:  # No space found, force break
                 break_point = max_length
-        
+
         chunks.append(remaining[:break_point].strip())
         remaining = remaining[break_point:].strip()
-    
+
     return chunks
 
 
@@ -145,16 +153,20 @@ async def safe_send_message(context, chat_id, text, **kwargs):
     try:
         # Split message if it's too long
         chunks = split_long_message(text)
-        
+
         last_message = None
         for i, chunk in enumerate(chunks):
             if i == 0:
                 # First chunk uses original kwargs
-                last_message = await context.bot.send_message(chat_id=chat_id, text=chunk, **kwargs)
+                last_message = await context.bot.send_message(
+                    chat_id=chat_id, text=chunk, **kwargs
+                )
             else:
                 # Subsequent chunks without special formatting
-                last_message = await context.bot.send_message(chat_id=chat_id, text=chunk)
-        
+                last_message = await context.bot.send_message(
+                    chat_id=chat_id, text=chunk
+                )
+
         return last_message
     except Exception as e:
         logger.error(f"Failed to send message to {chat_id}: {str(e)}")
@@ -166,116 +178,21 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     user_id = str(update.effective_user.id)
     user_name = update.effective_user.first_name
 
-    # Check if user already has timezone set
-    user_settings = get_user_settings(user_id)
-    
-    if user_settings and user_settings.get('timezone'):
-        # User already has timezone set
-        timezone = user_settings['timezone']
-        timezone_name = "Bali" if timezone == "Asia/Makassar" else "Moscow"
-        
-        welcome_message = (
-            f"Hello {user_name}! 👋\n\n"
-            f"Welcome back! Your timezone is set to {timezone_name}.\n\n"
-            f"I'm your AI therapist, ready to support you with compassionate guidance. "
-            f"Just send me a message and I'll respond.\n\n"
-            f"You'll receive proactive check-ins at 10:00 AM and 8:00 PM in your timezone.\n\n"
-            f"Type /help to see available commands or /timezone to change your timezone."
-        )
-        
-        await safe_send_message(context, update.effective_chat.id, welcome_message)
-    else:
-        # New user - show timezone selection
-        welcome_message = (
-            f"Hello {user_name}! 👋\n\n"
-            f"Welcome to your AI Therapist! I'm here to provide compassionate support "
-            f"and guidance whenever you need it.\n\n"
-            f"First, please select your timezone so I can send you proactive check-ins "
-            f"at the right times (10:00 AM and 8:00 PM):"
-        )
-        
-        keyboard = [
-            [InlineKeyboardButton("🏝️ Bali (Asia/Makassar)", callback_data="timezone_bali")],
-            [InlineKeyboardButton("🏙️ Moscow/SPB (Europe/Moscow)", callback_data="timezone_moscow")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        await safe_send_message(
-            context, 
-            update.effective_chat.id, 
-            welcome_message, 
-            reply_markup=reply_markup
-        )
+    welcome_message = (
+        f"Hello {user_name}! 👋\n\n"
+        f"Welcome to your AI Therapist! I'm here to provide compassionate support "
+        f"and guidance whenever you need it.\n\n"
+        f"Just send me a message and I'll respond with care and understanding.\n\n"
+        f"Type /help to see available commands."
+    )
+
+    await safe_send_message(context, update.effective_chat.id, welcome_message)
 
     # Initialize with default system prompt if user doesn't have one
+    from config import DEFAULT_SYSTEM_PROMPT
     if not get_system_prompt(user_id):
         set_system_prompt(user_id, DEFAULT_SYSTEM_PROMPT)
         logger.info(f"Set default system prompt for new user {user_id}")
-
-
-async def timezone_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle /timezone command to change timezone."""
-    user_id = str(update.effective_user.id)
-    
-    current_settings = get_user_settings(user_id)
-    current_timezone = "Not set"
-    if current_settings and current_settings.get('timezone'):
-        tz = current_settings['timezone']
-        current_timezone = "Bali" if tz == "Asia/Makassar" else "Moscow"
-    
-    message = (
-        f"Current timezone: {current_timezone}\n\n"
-        f"Select your timezone for proactive check-ins:"
-    )
-    
-    keyboard = [
-        [InlineKeyboardButton("🏝️ Bali (Asia/Makassar)", callback_data="timezone_bali")],
-        [InlineKeyboardButton("🏙️ Moscow/SPB (Europe/Moscow)", callback_data="timezone_moscow")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await safe_send_message(
-        context, 
-        update.effective_chat.id, 
-        message, 
-        reply_markup=reply_markup
-    )
-
-
-async def timezone_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle timezone selection callbacks."""
-    query = update.callback_query
-    user_id = str(query.from_user.id)
-    
-    await query.answer()
-    
-    if query.data == "timezone_bali":
-        timezone = "Asia/Makassar"
-        timezone_name = "Bali"
-    elif query.data == "timezone_moscow":
-        timezone = "Europe/Moscow"
-        timezone_name = "Moscow"
-    else:
-        await query.edit_message_text("Invalid selection. Please try again.")
-        return
-    
-    # Save timezone setting
-    success = set_user_settings(user_id, {"timezone": timezone})
-    
-    if success:
-        message = (
-            f"✅ Timezone set to {timezone_name}!\n\n"
-            f"You'll receive proactive check-ins at:\n"
-            f"• 10:00 AM {timezone_name} time\n"
-            f"• 8:00 PM {timezone_name} time\n\n"
-            f"I'm ready to support you! Send me a message anytime. 💚"
-        )
-        logger.info(f"Set timezone {timezone} for user {user_id}")
-    else:
-        message = "Sorry, there was an error saving your timezone. Please try again."
-        logger.error(f"Failed to save timezone for user {user_id}")
-    
-    await query.edit_message_text(message)
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -283,8 +200,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     help_message = (
         "Here are the available commands:\n\n"
         "/start - Start or restart the bot\n"
-        "/help - Show this help message\n"
-        "/timezone - Change your timezone settings\n\n"
+        "/help - Show this help message\n\n"
         "I'm your AI therapist, here to provide compassionate support. "
         "Just send me any message to start our conversation! 💚"
     )
@@ -293,137 +209,144 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle incoming messages, process through OpenAI, and respond"""
+    """Handle all non-command messages."""
+    chat_id = update.effective_chat.id
     user_id = str(update.effective_user.id)
     user_message = update.message.text
 
-    logger.info(f"Received message from user {user_id}")
+    import time
+    start_time = time.time()
+    logger.info(f"[TIMING] Message handling started for user {user_id}")
 
-    # Check if user has timezone set, if not - prompt to set it
-    user_settings = get_user_settings(user_id)
-    if not user_settings or not user_settings.get('timezone'):
-        logger.info(f"User {user_id} doesn't have timezone set, prompting to set it")
-        
-        timezone_prompt = (
-            "Hi! I notice you haven't set your timezone yet. "
-            "This helps me send you proactive check-ins at the right times (10:00 AM and 8:00 PM).\n\n"
-            "Please select your timezone:"
-        )
-        
-        keyboard = [
-            [InlineKeyboardButton("🏝️ Bali (Asia/Makassar)", callback_data="timezone_bali")],
-            [InlineKeyboardButton("🏙️ Moscow/SPB (Europe/Moscow)", callback_data="timezone_moscow")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        await safe_send_message(
-            context, 
-            update.effective_chat.id, 
-            timezone_prompt, 
-            reply_markup=reply_markup
-        )
-        
-        # Still process the message normally after showing timezone prompt
-    
-    # 1. Add the user's message to history
-    add_user_msg_success = add_message(user_id, "user", user_message)
-    if not add_user_msg_success:
-        logger.error(
-            f"Failed to save user message to history for user {user_id}")
-        # Attempt to notify user, but proceed if this fails
-        try:
-            await safe_send_message(
-                context,
-                update.effective_chat.id,
-                ("I'm having trouble saving our conversation. "
-                 "Your message might not be included in our chat history.")
-            )
-        except Exception as send_error:
-            logger.error(
-                f"Failed to send error notification to user {user_id}: {send_error}")
+    # Start a background task to send "typing..." action
+    typing_task = asyncio.create_task(keep_typing(context, chat_id))
 
-    # 2. Get the user's system prompt or use default
-    system_prompt = get_system_prompt(user_id) or DEFAULT_SYSTEM_PROMPT
-
-    # 3. Get the current conversation history (includes latest user message)
-    # manage_history will be called *after* the AI response is also saved.
-    current_history_for_openai = get_history(user_id)
-
-    # 4. Get any existing summaries
-    summary_objects = get_summaries(user_id)
-    summary_contents = [s['content'] for s in summary_objects]
-    logger.info(f"📚 Loaded {len(summary_contents)} summaries for user {user_id} context")
-
-    # 5. Get therapist notes for context
-    notes_objects = get_notes(user_id)  # All notes, no limit
-    notes_contents = [f"Note ({n['timestamp']}): {n['content']}" for n in notes_objects]
-    logger.info(f"📝 Loaded {len(notes_contents)} notes for user {user_id} context")
-
-    # 6. Generate timestamp information for context
-    timestamp_info = generate_timestamp_info(user_id)
-
-    # 7. Build the complete messages array for OpenAI
-    messages_for_openai = []
-    messages_for_openai.append({"role": "system", "content": system_prompt})
-    for i, summary_content in enumerate(summary_contents):
-        messages_for_openai.append({
-            "role": "system",
-            "content": f"Previous conversation summary: {summary_content}"
-        })
-        logger.debug(f"📚 Added summary {i+1} to context for user {user_id}: {summary_content[:100]}...")
-    
-    # Add therapist notes as system context
-    if notes_contents:
-        notes_context = "Previous therapist notes:\n" + "\n".join(notes_contents)
-        messages_for_openai.append({
-            "role": "system",
-            "content": notes_context
-        })
-        logger.debug(f"📝 Added {len(notes_contents)} notes to context for user {user_id}")
-    
-    # Add timestamp information as system message
-    messages_for_openai.append({
-        "role": "system", 
-        "content": f"Временная информация: {timestamp_info}"
-    })
-    for msg in current_history_for_openai:
-        messages_for_openai.append({"role": msg["role"], "content": msg["content"]})
-
-    # 8. Show typing indicator and get response from OpenAI with tool calling support
-    typing_task = None
     try:
-        # Start continuous typing indicator
-        typing_task = asyncio.create_task(keep_typing(context, update.effective_chat.id))
-        logger.info(f"Started continuous typing indicator for user {user_id}")
-        
-        tools_manager = get_tools_manager() if Config.ENABLE_TOOL_CALLING else None
-        logger.info(f"Sending request to OpenAI for user {user_id}")
-        ai_response = get_response(messages_for_openai, tools_manager=tools_manager, user_id=user_id)
-        logger.info(f"Received response from OpenAI for user {user_id}")
-        
+        # --- o4-mini Pre-processing Step ---
+        o4_summary = None
+        try:
+            # 1. Fetch all necessary data: facts and recent history (ASYNC!)
+            db_start = time.time()
+            facts = await get_facts_async(user_id)
+            history = await get_history_async(user_id)
+            recent_history = history[-6:]  # Get the last 6 messages
+            logger.info(f"[TIMING] DB operations took {time.time() - db_start:.2f}s")
+
+            # 2. Build the payload for o4-mini
+            payload_start = time.time()
+            o4_payload = build_o4_mini_payload(user_message, facts, recent_history)
+            logger.info(f"[TIMING] Payload building took {time.time() - payload_start:.2f}s")
+
+            # 3. Call o4-mini to get summary and perform fact management
+            if o4_payload:
+                o4_start = time.time()
+                logger.info("[TIMING] Starting o4-mini request...")
+                summary_result, _ = await get_o4_mini_summary(o4_payload)
+                logger.info(f"[TIMING] o4-mini request took {time.time() - o4_start:.2f}s")
+
+                # 4. Use the summary and manage facts
+                if summary_result:
+                    o4_summary = summary_result.summary
+                    if summary_result.references:
+                        o4_summary += f"\n(References: {summary_result.references})"
+                    logger.info(
+                        f"Successfully got summary from o4-mini for user {user_id}"
+                    )
+
+                    # Perform fact management (updates, merges, pruning)
+                    fact_manager = get_factology_manager()
+                    if summary_result.references:
+                        fact_manager.update_hot_scores(
+                            user_id, summary_result.references
+                        )
+                    if summary_result.reorganisation:
+                        fact_manager.merge_facts(user_id, summary_result.reorganisation)
+                    fact_manager.prune_facts(user_id)
+
+        except Exception as e:
+            logger.error(
+                f"Could not get summary from o4-mini or manage facts: {e}",
+                exc_info=True,
+            )
+
+        # --- o3 Therapist Model Step ---
+        # Build the payload for the main model (o3) (use already fetched history)
+        last_6_messages = history[-6:]  # Get the last 6 messages
+        payload = build_payload(user_id, user_message, last_6_messages, o4_summary)
+
+        # Call the API with function calling enabled
+        message = await get_o3_response_tool(payload)
+        bot_response_text = ""
+
+        # Check for tool calls and process them
+        if message.tool_calls:
+            tool_call = message.tool_calls[0]
+            if tool_call.function.name == "process_user_message":
+                try:
+                    # Parse the arguments from the model
+                    args = json.loads(tool_call.function.arguments)
+                    analysis = AnalysisResult.model_validate(args)
+
+                    # Set the text to print to the console
+                    bot_response_text = analysis.text_to_client
+
+                    # Save facts if they exist
+                    if analysis.factology:
+                        # The new manager saves facts one by one
+                        fact_manager = get_factology_manager()
+                        saved_count = 0
+                        for fact in analysis.factology:
+                            try:
+                                fact_manager.save_new_fact(
+                                    user_id=user_id,
+                                    fact_content=fact.content,
+                                    category=fact.category,
+                                    priority=fact.priority,
+                                )
+                                saved_count += 1
+                            except Exception as e:
+                                logger.error(
+                                    f"Failed to save fact: {fact.content}",
+                                    exc_info=True,
+                                )
+
+                        if saved_count > 0:
+                            logger.info(
+                                f"Saved {saved_count} new fact(s) for user {user_id}."
+                            )
+
+                except Exception:
+                    logger.error("Error processing tool call", exc_info=True)
+                    bot_response_text = "I had a little trouble processing that, sorry."
+            else:
+                bot_response_text = "I received a tool call I don't know how to handle."
+
+        elif message.content:
+            # Fallback if the model doesn't use the tool
+            bot_response_text = message.content
+        else:
+            bot_response_text = "I'm not sure how to respond to that."
+
+        # Send the final response to the user
+        await safe_send_message(context, chat_id, bot_response_text)
+
+        # Save the interaction to history
+        from datetime import datetime, timezone
+        timestamp = datetime.now(timezone.utc)
+        add_message_with_timestamp(user_id, "user", user_message, timestamp)
+        add_message_with_timestamp(user_id, "assistant", bot_response_text, timestamp)
+
+    except Exception as e:
+        logger.error(f"Error handling message for user {user_id}: {e}", exc_info=True)
+        error_message = (
+            "I'm sorry, I've encountered a problem and can't respond right now. "
+            "Please try again later."
+        )
+        await safe_send_message(context, chat_id, error_message)
+
     finally:
-        # Stop typing indicator
-        if typing_task:
-            typing_task.cancel()
-            try:
-                await typing_task
-            except asyncio.CancelledError:
-                pass
-            logger.debug(f"Stopped typing indicator for user {user_id}")
-
-    # 8. Send the response back to the user
-    await safe_send_message(context, update.effective_chat.id, ai_response)
-
-    # 9. Store the AI response in history
-    add_ai_msg_success = add_message(user_id, "assistant", ai_response)
-    if not add_ai_msg_success:
-        logger.error(
-            f"Failed to save assistant response to history for user {user_id}")
-
-    # 10. Manage history (trimming and summarization if needed)
-    manage_history(user_id)
-    logger.debug(
-        f"History management processed for user {user_id} after AI response.")
+        # Stop the "typing..." task
+        typing_task.cancel()
 
 
 def setup_handlers(application: Application) -> None:
@@ -431,13 +354,10 @@ def setup_handlers(application: Application) -> None:
     # Add command handlers
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("timezone", timezone_command))
-    
-    # Add callback query handler for timezone selection
-    application.add_handler(CallbackQueryHandler(timezone_callback, pattern="^timezone_"))
 
     # Add handler for regular text messages
-    application.add_handler(MessageHandler(
-        filters.TEXT & ~filters.COMMAND, handle_message))
+    application.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
+    )
 
     logger.info("Telegram message handlers have been set up")

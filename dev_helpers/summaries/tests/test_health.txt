@@ -1,4 +1,0 @@
-hash:c570d8aa0e6909abc60745e49610e46a87088a1e7ac2fd4b774bc3cdda10afac
-path:tests/test_health.py | source:tests/test_health.py | lastUpdated:2025-05-21T13:16:30.937088 | lines:14
-
-This `pytest` file contains a test function `test_health_endpoint`. Its main purpose is to verify the functionality of a web application's health check endpoint, typically located at `/health`. The test sends a GET request to this endpoint and asserts that the response has a 200 OK status code and that the JSON body contains a `"status"` field with the value `"ok"`. This ensures the basic health and responsiveness of the application.

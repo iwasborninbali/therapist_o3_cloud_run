@@ -1,4 +1,0 @@
-hash:a7b4ad73724cb70b9b83077c6c6f759f98729ccbd2706f4e27db55b15ec8de5f
-path:test_decrypt.py | source:test_decrypt.py | lastUpdated:2025-05-25T16:03:05.934674 | lines:75
-
-This Python script is designed to test and verify Firebase credentials and access. It loads environment variables, including `FIREBASE_CRED_JSON`, and uses them to initialize the Firebase Admin SDK. The script then attempts to connect to Firestore via the `test_firebase_access` function and read data from the 'users' collection as a connectivity test. It prints detailed success or failure messages based on the environment variable check and the Firebase connection attempt. The main goal is to confirm the Firebase setup is correctly configured and operational.

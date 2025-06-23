@@ -1,4 +1,0 @@
-hash:3fb8dddf67a7d817f80dc9bc9944acfc3bc2fd4decb938cee6efe099748d2c86
-path:requirements.txt | source:requirements.txt | lastUpdated:2025-05-25T16:19:02.106968 | lines:17
-
-This `requirements.txt` file lists the Python dependencies for a project. It includes libraries for building a web API using FastAPI and Uvicorn. The project integrates with external services such as the Telegram Bot API and Google Cloud Firestore for data storage. It also utilizes AI models from OpenAI and Google Generative AI. Development dependencies for testing and other utilities are also specified.

@@ -1,4 +1,0 @@
-hash:46ec710c64eea9c9e83059eb81adfb602a05b8e6a477d65204a36766e46d75c0
-path:bot/retry_utils.py | source:bot/retry_utils.py | lastUpdated:2025-05-21T13:19:04.285616 | lines:129
-
-This Python file `retry_utils.py` provides utility decorators for retrying function execution upon failure. It includes `retry_async` for asynchronous functions and `retry_sync` for synchronous ones. Both decorators implement an exponential backoff strategy between retry attempts. They log the progress, including failures and successes on retries. Configuration values can be used to set the maximum number of attempts and the base delay.

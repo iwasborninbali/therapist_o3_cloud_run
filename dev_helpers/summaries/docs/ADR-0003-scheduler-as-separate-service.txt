@@ -1,4 +1,0 @@
-hash:0cc83a6902b9590fcadb0863445d48c96c20d0026bdd75edf85fb5efd76b0ad4
-path:docs/ADR-0003-scheduler-as-separate-service.md | source:docs/ADR-0003-scheduler-as-separate-service.md | lastUpdated:2025-05-26T10:49:07.563872 | lines:76
-
-This ADR discusses the architectural decision for implementing a proactive message scheduler for a therapist bot. The main purpose was to reliably send timed messages based on user timezones while preventing duplicates caused by horizontal scaling of the main service. The decision was to create a separate, dedicated Cloud Run service (`therapist-scheduler`) to manage this task, ensuring a single, always-on instance. This approach provided resource isolation and guaranteed no duplicate messages, unlike integrating into the main webhook service (`therapist-o3`). This ADR has been superseded by ADR-0007, which moved to Cloud Scheduler for improved cost efficiency and timing precision.

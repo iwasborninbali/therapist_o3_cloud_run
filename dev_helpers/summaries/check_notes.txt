@@ -1,4 +1,0 @@
-hash:591f2da2e33f1506b98b4580b3b6ce6f29368a4d7c3ce91306304e964204a720
-path:check_notes.py | source:check_notes.py | lastUpdated:2025-05-26T11:30:10.198439 | lines:49
-
-This Python script connects to a Firestore database to retrieve and display recent notes. It uses a Firestore client obtained via `get_db` to access the "notes" collection. The script queries the database for the 10 most recent notes based on their timestamp. It then prints details for each retrieved note, including its ID, user ID, content, and timestamp. The core functionality is implemented in the `check_all_notes` function.

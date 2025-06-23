@@ -4,15 +4,16 @@ __pycache__
 .env
 README.md
 *service-account*key.json
-*adminsdk*.json
 firebase-service-account-key.json
-*firebase*adminsdk*.json
+# Allow our specific Firebase credentials file
+!ales-f75a1-firebase-adminsdk-fbsvc-e008504e79.json
 *creds_encrypted*.bin
 *.bin
 .pytest_cache
 .github
 docs
-dev_helpers
+dev_helpers/
 tests
 *.md
-.gitignore 
+.gitignore
+hug_mvp_local/ 

@@ -1,20 +1,90 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from google.cloud import firestore
+from google.auth import default
+from google.auth.exceptions import DefaultCredentialsError, TransportError
+import ssl
+import certifi
+import urllib3
 from config import Config
-from bot.retry_utils import retry_sync
-import pytz
+from bot.retry_utils import retry_sync, retry_async
+
+from google.cloud.firestore_v1.base_query import FieldFilter
+from typing import List, Dict, Any
+import time
 
 logger = logging.getLogger(__name__)
 
 # Initialize Firestore client lazily
 db = None
 
+def configure_ssl_context():
+    """Configure SSL context for better compatibility"""
+    try:
+        # Disable SSL verification warnings for urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        
+        # Create SSL context with proper certificate verification
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
+        ssl_context.check_hostname = True
+        ssl_context.verify_mode = ssl.CERT_REQUIRED
+        
+        return ssl_context
+    except Exception as e:
+        logger.warning(f"Could not configure SSL context: {e}")
+        return None
 
 def get_db():
     global db
     if db is None:
-        db = firestore.Client(project=Config.FIREBASE_PROJECT_ID)
+        max_retries = 3
+        retry_delay = 2
+        
+        for attempt in range(max_retries):
+            try:
+                logger.info(f"Initializing Firestore client (attempt {attempt + 1}/{max_retries})")
+                
+                # Configure SSL context
+                configure_ssl_context()
+                
+                # Try to get default credentials with timeout
+                credentials, project = default(
+                    scopes=['https://www.googleapis.com/auth/cloud-platform']
+                )
+                
+                # Initialize Firestore client with explicit project
+                project_id = Config.FIREBASE_PROJECT_ID or project
+                db = firestore.Client(
+                    project=project_id,
+                    credentials=credentials
+                )
+                
+                # Test the connection with a simple operation
+                logger.info("Testing Firestore connection...")
+                test_doc = db.collection('_connection_test').document('test')
+                test_doc.set({'timestamp': datetime.utcnow(), 'test': True}, merge=True)
+                
+                logger.info("Firestore client initialized successfully")
+                return db
+                
+            except (DefaultCredentialsError, TransportError) as e:
+                logger.error(f"Authentication error on attempt {attempt + 1}: {e}")
+                if attempt < max_retries - 1:
+                    logger.info(f"Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                else:
+                    logger.error("Failed to initialize Firestore client after all retries")
+                    raise
+            except Exception as e:
+                logger.error(f"Unexpected error initializing Firestore: {e}")
+                if attempt < max_retries - 1:
+                    logger.info(f"Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2
+                else:
+                    raise
+    
     return db
 
 
@@ -31,22 +101,20 @@ def get_history(user_id):
     """
     try:
         current_db = get_db()
-        history_ref = current_db.collection("history").document(
-            user_id).collection("messages")
-        # Order by timestamp to ensure chronological order for trimming
+        history_ref = (
+            current_db.collection("history").document(user_id).collection("messages")
+        )
+        # Order by timestamp to ensure chronological order
         messages_query = history_ref.order_by(
-            "timestamp", direction=firestore.Query.ASCENDING)
+            "timestamp", direction=firestore.Query.ASCENDING
+        )
         message_docs = messages_query.stream()
 
         history = []
         for doc in message_docs:
             msg_data = doc.to_dict()
-            history.append({
-                "firestore_doc_id": doc.id,  # Include the document ID
-                "role": msg_data["role"],
-                "content": msg_data["content"],
-                "timestamp": msg_data["timestamp"]
-            })
+            msg_data["firestore_doc_id"] = doc.id
+            history.append(msg_data)
 
         return history
 
@@ -55,35 +123,72 @@ def get_history(user_id):
         return []
 
 
-@retry_sync()
-def add_message(user_id, role, content):
+@firestore.transactional
+def _add_message_transaction(transaction, user_id, message_data):
     """
-    Add a message to the user's conversation history
+    Transactional function to add a new message with a sequential ID.
+    This function should not be called directly.
+    """
+    current_db = get_db()
+    # Path for the counter, e.g., history/123/_meta/counter
+    counter_ref = (
+        current_db.collection("history")
+        .document(user_id)
+        .collection("_meta")
+        .document("counter")
+    )
+
+    counter_snapshot = counter_ref.get(transaction=transaction)
+
+    current_count = 0
+    if counter_snapshot.exists:
+        current_count = counter_snapshot.to_dict().get("count", 0)
+
+    new_message_id = current_count + 1
+
+    # The new message will have its ID as a string (e.g., "1", "2")
+    new_message_ref = (
+        current_db.collection("history")
+        .document(user_id)
+        .collection("messages")
+        .document(str(new_message_id))
+    )
+
+    transaction.set(new_message_ref, message_data)
+    transaction.set(counter_ref, {"count": new_message_id})
+    return True
+
+
+
+
+
+def add_message_with_timestamp(user_id, role, content, timestamp_obj):
+    """
+    Adds a message for a user using a transaction to ensure a sequential ID.
 
     Args:
-        user_id (str): The user's Telegram ID
-        role (str): Message role ('user' or 'assistant')
-        content (str): Message content
+        user_id (str): The user's Telegram ID.
+        role (str): 'user' or 'assistant'.
+        content (str): Message content.
+        timestamp_obj (datetime): The timestamp for the message.
 
     Returns:
-        bool: Success status
+        bool: Success status.
     """
     try:
-        timestamp = datetime.utcnow()
         current_db = get_db()
-        history_ref = current_db.collection("history").document(
-            user_id).collection("messages")
-        history_ref.add({
+        transaction = current_db.transaction()
+        message_data = {
             "role": role,
             "content": content,
-            "timestamp": timestamp
-        })
-
-        logger.debug(f"Added {role} message to history for user {user_id}")
+            "timestamp": timestamp_obj,
+        }
+        _add_message_transaction(transaction, user_id, message_data)
         return True
-
     except Exception as e:
-        logger.error(f"Error adding message for user {user_id}: {str(e)}")
+        logger.error(
+            f"Error adding message with sequential ID for user {user_id}: {str(e)}"
+        )
         return False
 
 
@@ -100,27 +205,30 @@ def get_summaries(user_id):
     """
     try:
         current_db = get_db()
-        summaries_ref = current_db.collection("summaries").document(
-            user_id).collection("items")
+        summaries_ref = (
+            current_db.collection("summaries").document(user_id).collection("items")
+        )
         # Order by timestamp to ensure chronological order for FIFO management
         summary_docs_query = summaries_ref.order_by(
-            "timestamp", direction=firestore.Query.ASCENDING)
+            "timestamp", direction=firestore.Query.ASCENDING
+        )
         summary_docs = summary_docs_query.stream()
 
         summaries = []
         for doc in summary_docs:
             summary_data = doc.to_dict()
-            summaries.append({
-                "firestore_doc_id": doc.id,  # Include the document ID
-                "content": summary_data["content"],
-                "timestamp": summary_data["timestamp"]
-            })
+            summaries.append(
+                {
+                    "firestore_doc_id": doc.id,  # Include the document ID
+                    "content": summary_data["content"],
+                    "timestamp": summary_data["timestamp"],
+                }
+            )
 
         return summaries
 
     except Exception as e:
-        logger.error(
-            f"Error retrieving summaries for user {user_id}: {str(e)}")
+        logger.error(f"Error retrieving summaries for user {user_id}: {str(e)}")
         return []
 
 
@@ -140,12 +248,10 @@ def add_summary(user_id, summary_content):
     try:
         timestamp = datetime.utcnow()
         current_db = get_db()
-        summaries_ref = current_db.collection("summaries").document(
-            user_id).collection("items")
-        summaries_ref.add({
-            "content": summary_content,
-            "timestamp": timestamp
-        })
+        summaries_ref = (
+            current_db.collection("summaries").document(user_id).collection("items")
+        )
+        summaries_ref.add({"content": summary_content, "timestamp": timestamp})
 
         logger.debug(f"Added summary for user {user_id}")
         return True
@@ -176,8 +282,7 @@ def get_system_prompt(user_id):
         return None
 
     except Exception as e:
-        logger.error(
-            f"Error retrieving system prompt for user {user_id}: {str(e)}")
+        logger.error(f"Error retrieving system prompt for user {user_id}: {str(e)}")
         return None
 
 
@@ -196,24 +301,20 @@ def set_system_prompt(user_id, prompt):
     try:
         current_db = get_db()
         prompt_ref = current_db.collection("system_prompts").document(user_id)
-        prompt_ref.set({
-            "prompt": prompt,
-            "updated_at": datetime.utcnow()
-        })
+        prompt_ref.set({"prompt": prompt, "updated_at": datetime.utcnow()})
 
         logger.debug(f"Set system prompt for user {user_id}")
         return True
 
     except Exception as e:
-        logger.error(
-            f"Error setting system prompt for user {user_id}: {str(e)}")
+        logger.error(f"Error setting system prompt for user {user_id}: {str(e)}")
         return False
 
 
 @retry_sync()
 def get_user_settings(user_id):
     """
-    Retrieve user settings including timezone preference.
+    Retrieve user settings.
 
     Args:
         user_id (str): The user's Telegram ID
@@ -231,19 +332,18 @@ def get_user_settings(user_id):
         return None
 
     except Exception as e:
-        logger.error(
-            f"Error retrieving user settings for user {user_id}: {str(e)}")
+        logger.error(f"Error retrieving user settings for user {user_id}: {str(e)}")
         return None
 
 
 @retry_sync()
 def set_user_settings(user_id, settings):
     """
-    Set user settings including timezone preference.
+    Set user settings.
 
     Args:
         user_id (str): The user's Telegram ID
-        settings (dict): Settings dictionary (e.g., {'timezone': 'Asia/Makassar'})
+        settings (dict): Settings dictionary
 
     Returns:
         bool: Success status
@@ -251,94 +351,85 @@ def set_user_settings(user_id, settings):
     try:
         current_db = get_db()
         settings_ref = current_db.collection("user_settings").document(user_id)
-        
+
         # Merge with existing settings
         existing_settings = get_user_settings(user_id) or {}
         updated_settings = {**existing_settings, **settings}
         updated_settings["updated_at"] = datetime.utcnow()
-        
+
         settings_ref.set(updated_settings)
 
         logger.debug(f"Set user settings for user {user_id}: {settings}")
         return True
 
     except Exception as e:
-        logger.error(
-            f"Error setting user settings for user {user_id}: {str(e)}")
+        logger.error(f"Error setting user settings for user {user_id}: {str(e)}")
         return False
 
 
+
+
+
 @retry_sync()
-def get_users_by_timezone(timezone):
+def get_last_user_message_timestamp(user_id):
     """
-    Get all user IDs that have the specified timezone setting.
-    
+    Efficiently retrieve the timestamp of the last message from a user.
+
     Args:
-        timezone (str): Timezone string (e.g., 'Asia/Makassar', 'Europe/Moscow')
-        
+        user_id (str): The user's Telegram ID
+
     Returns:
-        list: List of user IDs
+        datetime or None: The UTC timestamp of the last user message, or None if not found.
     """
     try:
         current_db = get_db()
-        settings_ref = current_db.collection("user_settings")
-        query = settings_ref.where("timezone", "==", timezone)
+        history_ref = (
+            current_db.collection("history").document(user_id).collection("messages")
+        )
+
+        # Query for the last message from the user
+        query = (
+            history_ref.where(filter=FieldFilter("role", "==", "user"))
+            .order_by("timestamp", direction=firestore.Query.DESCENDING)
+            .limit(1)
+        )
         docs = query.stream()
-        
-        user_ids = []
+
+        # Since we limited to 1, there's either one or zero docs
         for doc in docs:
-            user_ids.append(doc.id)
-            
-        return user_ids
-        
+            return doc.to_dict().get("timestamp")
+
+        return None  # No user messages found
+
     except Exception as e:
-        logger.error(f"Error getting users by timezone {timezone}: {str(e)}")
-        return []
+        logger.error(
+            f"Error getting last user message timestamp for user {user_id}: {str(e)}"
+        )
+        return None
 
 
 def generate_timestamp_info(user_id):
     """
-    Generate timestamp information for the current message, including:
-    - Current time in user's timezone
-    - Time gap since last user message
-    
+    Generate simple timestamp information for the current message.
+
     Args:
         user_id (str): The user's Telegram ID
-        
+
     Returns:
         str: Formatted timestamp information for the AI context
     """
     try:
-        # Get user's timezone
-        user_settings = get_user_settings(user_id)
-        if not user_settings or not user_settings.get('timezone'):
-            return "Текущее время: не задан часовой пояс пользователя"
+        current_time = datetime.now(timezone.utc)
         
-        timezone_str = user_settings['timezone']
-        user_tz = pytz.timezone(timezone_str)
-        current_time = datetime.now(user_tz)
-        
-        # Get conversation history to find last user message
-        history = get_history(user_id)
-        
-        # Find last user message (excluding the current one which hasn't been saved yet)
-        last_user_message_time = None
-        for msg in reversed(history):
-            if msg['role'] == 'user':
-                # Convert UTC timestamp to user's timezone
-                if isinstance(msg['timestamp'], datetime):
-                    utc_time = msg['timestamp'].replace(tzinfo=pytz.UTC)
-                    last_user_message_time = utc_time.astimezone(user_tz)
-                    break
-        
-        # Format current time
-        location_name = "Bali" if timezone_str == "Asia/Makassar" else "Moscow" if timezone_str == "Europe/Moscow" else timezone_str
-        time_info = f"Сейчас в {location_name}: {current_time.strftime('%d.%m.%Y %H:%M (%A)')}"
-        
+        # Get the timestamp of the last user message efficiently
+        last_user_message_timestamp_utc = get_last_user_message_timestamp(user_id)
+
+        time_info = f"Текущее время UTC: {current_time.strftime('%d.%m.%Y %H:%M')}"
+
         # Calculate time gap if we have a previous message
-        if last_user_message_time:
-            time_diff = current_time - last_user_message_time
-            
+        if last_user_message_timestamp_utc:
+            time_diff = current_time - last_user_message_timestamp_utc
+
             # Format time difference
             if time_diff.days > 0:
                 gap_info = f" (с последнего сообщения прошло: {time_diff.days} дн. {time_diff.seconds // 3600} ч.)"
@@ -351,165 +442,301 @@ def generate_timestamp_info(user_id):
                 gap_info = f" (с последнего сообщения прошло: {minutes} мин.)"
             else:
                 gap_info = " (только что писал)"
-            
+
             time_info += gap_info
         else:
             time_info += " (первое сообщение пользователя)"
-        
+
         return time_info
-        
+
     except Exception as e:
         logger.error(f"Error generating timestamp info for user {user_id}: {str(e)}")
         return "Текущее время: ошибка получения времени"
 
 
-@retry_sync()
-def get_last_proactive_meta(user_id):
+
+
+
+@firestore.transactional
+def _add_fact_transaction(transaction, user_id, fact_data):
     """
-    Get the last proactive message metadata for a user.
-    
-    Args:
-        user_id (str): The user's Telegram ID
-        
-    Returns:
-        dict: Metadata with 'morning' and 'evening' last sent dates, or empty dict
+    Transactional function to add a new fact with a sequential ID.
+    This function should not be called directly. Use `add_fact`.
+    """
+    current_db = get_db()
+    counter_ref = (
+        current_db.collection("factology")
+        .document(user_id)
+        .collection("_meta")
+        .document("counter")
+    )
+
+    counter_snapshot = counter_ref.get(transaction=transaction)
+
+    current_count = 0
+    if counter_snapshot.exists:
+        current_count = counter_snapshot.to_dict().get("count", 0)
+
+    new_fact_id = current_count + 1
+
+    # The new fact will have its ID as a string (e.g., "1", "2")
+    new_fact_ref = (
+        current_db.collection("factology")
+        .document(user_id)
+        .collection("entries")
+        .document(str(new_fact_id))
+    )
+
+    transaction.set(new_fact_ref, fact_data)
+    transaction.set(counter_ref, {"count": new_fact_id})
+    return True
+
+
+def add_fact(
+    user_id: str,
+    category: str,
+    content: str,
+    priority: str,
+    timestamp: str,
+    hot: float = 1.0,
+):
+    """
+    Add a structured fact for a specific user with a sequential ID.
+    This function wraps a Firestore transaction.
     """
     try:
         current_db = get_db()
-        meta_ref = current_db.collection("proactive_meta").document(user_id)
-        meta_doc = meta_ref.get()
-        
-        if meta_doc.exists:
-            return meta_doc.to_dict()
-        return {}
-        
-    except Exception as e:
-        logger.error(f"Error getting proactive meta for user {user_id}: {str(e)}")
-        return {}
-
-
-@retry_sync()
-def set_last_proactive_meta(user_id, slot, date_iso):
-    """
-    Set the last proactive message date for a specific slot.
-    
-    Args:
-        user_id (str): The user's Telegram ID
-        slot (str): Either 'morning' or 'evening'
-        date_iso (str): Date in ISO format (YYYY-MM-DD)
-        
-    Returns:
-        bool: Success status
-    """
-    try:
-        current_db = get_db()
-        meta_ref = current_db.collection("proactive_meta").document(user_id)
-        
-        # Get existing metadata or create new
-        existing_meta = get_last_proactive_meta(user_id) or {}
-        
-        # Update the specific slot
-        existing_meta[slot] = date_iso
-        existing_meta["updated_at"] = datetime.utcnow()
-        
-        meta_ref.set(existing_meta)
-        
-        logger.debug(f"Set proactive meta for user {user_id}, slot {slot}: {date_iso}")
-        return True
-        
-    except Exception as e:
-        logger.error(f"Error setting proactive meta for user {user_id}: {str(e)}")
-        return False
-
-
-@retry_sync()
-def add_note(user_id, content, timestamp, created_by="therapist_ai"):
-    """
-    Add a therapist note for a specific user.
-    
-    Args:
-        user_id (str): The user's Telegram ID
-        content (str): Note content
-        timestamp (str): ISO timestamp when note was created
-        created_by (str): Who created the note (default: "therapist_ai")
-        
-    Returns:
-        bool: Success status
-    """
-    try:
-        current_db = get_db()
-        notes_ref = current_db.collection("notes").document(user_id).collection("items")
-        
-        note_data = {
+        transaction = current_db.transaction()
+        fact_data = {
+            "category": category,
             "content": content,
+            "priority": priority,
             "timestamp": timestamp,
-            "created_by": created_by
+            "hot": hot,
         }
-        
-        # Add note with auto-generated document ID
-        notes_ref.add(note_data)
-        
-        logger.info(f"Added note for user {user_id}: {content[:50]}...")
+        _add_fact_transaction(transaction, user_id, fact_data)
+        logger.debug(f"Added fact for user {user_id}")
         return True
-        
+
     except Exception as e:
-        logger.error(f"Error adding note for user {user_id}: {str(e)}")
+        logger.error(f"Error adding fact for user {user_id}: {str(e)}")
         return False
 
 
 @retry_sync()
-def get_notes(user_id, limit=None):
+def get_facts(user_id: str, limit: int = None) -> List[Dict[str, Any]]:
     """
-    Get therapist notes for a specific user.
-    
+    Get facts for a specific user.
+
     Args:
-        user_id (str): The user's Telegram ID
-        limit (int): Maximum number of notes to retrieve
-        
+        user_id: The user's Telegram ID
+        limit: Maximum number of facts to retrieve
+
     Returns:
-        list: List of note dictionaries, ordered by timestamp (newest first)
+        List of fact dictionaries, ordered by timestamp (newest first)
     """
     try:
         current_db = get_db()
-        notes_ref = current_db.collection("notes").document(user_id).collection("items")
-        
-        # Query notes for this user, ordered by timestamp descending
-        query = notes_ref.order_by("timestamp", direction="DESCENDING")
+        facts_ref = (
+            current_db.collection("factology").document(user_id).collection("entries")
+        )
+
+        query = facts_ref.order_by("timestamp", direction="DESCENDING")
         if limit:
             query = query.limit(limit)
         docs = query.stream()
-        
-        notes = []
+
+        facts = []
         for doc in docs:
-            note_data = doc.to_dict()
-            note_data["firestore_doc_id"] = doc.id  # Include document ID
-            notes.append(note_data)
-            
-        return notes
-        
+            fact_data = doc.to_dict()
+            fact_data["firestore_doc_id"] = doc.id
+            facts.append(fact_data)
+
+        return facts
+
     except Exception as e:
-        logger.error(f"Error getting notes for user {user_id}: {str(e)}")
+        logger.error(f"Error getting facts for user {user_id}: {str(e)}")
         return []
+
+
+@retry_sync()
+def update_fact(user_id: str, fact_id: str, new_content: str):
+    """
+    Updates the content of a specific fact.
+
+    Args:
+        user_id: The user's Telegram ID
+        fact_id: The Firestore document ID of the fact
+        new_content: The new content to set for the fact
+
+    Returns:
+        bool: Success status
+    """
+    try:
+        current_db = get_db()
+        fact_ref = (
+            current_db.collection("factology")
+            .document(user_id)
+            .collection("entries")
+            .document(fact_id)
+        )
+        fact_ref.update(
+            {
+                "content": new_content,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
+        logger.info(f"Updated fact {fact_id} for user {user_id}")
+        return True
+    except Exception as e:
+        logger.error(f"Error updating fact {fact_id} for user {user_id}: {e}")
+        return False
+
+
+@retry_sync()
+def delete_fact(user_id: str, fact_id: str):
+    """
+    Deletes a specific fact.
+
+    Args:
+        user_id: The user's Telegram ID
+        fact_id: The Firestore document ID of the fact
+
+    Returns:
+        bool: Success status
+    """
+    try:
+        current_db = get_db()
+        fact_ref = (
+            current_db.collection("factology")
+            .document(user_id)
+            .collection("entries")
+            .document(fact_id)
+        )
+        fact_ref.delete()
+        logger.info(f"Deleted fact {fact_id} for user {user_id}")
+        return True
+    except Exception as e:
+        logger.error(f"Error deleting fact {fact_id} for user {user_id}: {e}")
+        return False
+
+
+@retry_sync()
+def get_facts_by_ids(user_id: str, fact_ids: List[str]) -> List[Dict[str, Any]]:
+    """
+    Retrieves specific facts for a user based on a list of document IDs.
+    This implementation fetches documents one by one.
+
+    Args:
+        user_id: The user's Telegram ID.
+        fact_ids: A list of Firestore document IDs to retrieve.
+
+    Returns:
+        A list of fact dictionaries.
+    """
+    if not fact_ids:
+        return []
+
+    try:
+        current_db = get_db()
+        facts_ref = (
+            current_db.collection("factology").document(user_id).collection("entries")
+        )
+
+        facts = []
+        for doc_id in fact_ids:
+            doc_ref = facts_ref.document(doc_id)
+            doc = doc_ref.get()
+            if doc.exists:
+                fact_data = doc.to_dict()
+                fact_data["firestore_doc_id"] = doc.id
+                facts.append(fact_data)
+
+        return facts
+    except Exception as e:
+        logger.error(f"Error getting facts by IDs for user {user_id}: {e}")
+        return []
+
+
+@retry_sync()
+def update_fact_fields(user_id: str, fact_id: str, updates: Dict[str, Any]):
+    """
+    Updates specific fields of a fact document.
+
+    Args:
+        user_id: The user's Telegram ID.
+        fact_id: The Firestore document ID of the fact to update.
+        updates: A dictionary of fields and their new values.
+    """
+    try:
+        current_db = get_db()
+        fact_ref = (
+            current_db.collection("factology")
+            .document(user_id)
+            .collection("entries")
+            .document(fact_id)
+        )
+        fact_ref.update(updates)
+        return True
+    except Exception as e:
+        logger.error(f"Error updating fact {fact_id} for user {user_id}: {e}")
+        return False
+
+
+@retry_sync()
+def delete_facts_by_ids(user_id: str, fact_ids: List[str]):
+    """
+    Deletes multiple facts for a user in a single batched write.
+
+    Args:
+        user_id (str): The user's ID.
+        fact_ids (List[str]): The Firestore document IDs of the facts to delete.
+    """
+    if not fact_ids:
+        return 0
+
+    try:
+        current_db = get_db()
+        batch = current_db.batch()
+        facts_ref = (
+            current_db.collection("factology").document(user_id).collection("entries")
+        )
+
+        for fact_id in fact_ids:
+            fact_ref = facts_ref.document(str(fact_id))  # Ensure fact_id is a string
+            batch.delete(fact_ref)
+
+        batch.commit()
+        logger.info(f"Successfully deleted {len(fact_ids)} facts for user {user_id}.")
+        return len(fact_ids)
+    except Exception as e:
+        logger.error(
+            f"Error deleting facts by batch for user {user_id}: {str(e)}",
+            exc_info=True,
+        )
+        return 0
 
 
 @retry_sync()
 def has_processed_update(update_id):
     """
-    Check if we've already processed this Telegram update_id.
-    
+    Check if a Telegram update has already been processed.
+
     Args:
         update_id (int): Telegram update ID
-        
+
     Returns:
         bool: True if already processed, False otherwise
     """
     try:
         current_db = get_db()
-        processed_ref = current_db.collection("processed_updates").document(str(update_id))
+        processed_ref = current_db.collection("processed_updates").document(
+            str(update_id)
+        )
         doc = processed_ref.get()
-        
+
         return doc.exists
-        
+
     except Exception as e:
         logger.error(f"Error checking processed update {update_id}: {str(e)}")
         # In case of error, assume not processed to avoid losing messages
@@ -520,25 +747,110 @@ def has_processed_update(update_id):
 def mark_update_processed(update_id):
     """
     Mark a Telegram update_id as processed to prevent duplicate handling.
-    
+
     Args:
         update_id (int): Telegram update ID
-        
+
     Returns:
         bool: Success status
     """
     try:
         current_db = get_db()
-        processed_ref = current_db.collection("processed_updates").document(str(update_id))
-        
-        processed_ref.set({
-            "processed_at": datetime.utcnow(),
-            "update_id": update_id
-        })
-        
+        processed_ref = current_db.collection("processed_updates").document(
+            str(update_id)
+        )
+
+        processed_ref.set({"processed_at": datetime.utcnow(), "update_id": update_id})
+
         logger.debug(f"Marked update {update_id} as processed")
         return True
-        
+
     except Exception as e:
         logger.error(f"Error marking update {update_id} as processed: {str(e)}")
         return False
+
+
+@retry_async()
+async def get_fact_by_id(user_id: str, fact_id: str):
+    """
+    Fetches a single fact by its document ID.
+    """
+    try:
+        current_db = get_db()
+        fact_ref = (
+            current_db.collection("users")
+            .document(user_id)
+            .collection("facts")
+            .document(fact_id)
+        )
+        fact_doc = await fact_ref.get()
+        return fact_doc.to_dict() if fact_doc.exists else None
+    except Exception as e:
+        logger.error(f"Error fetching fact {fact_id} for user {user_id}: {e}")
+        return None
+
+
+@retry_async()
+async def get_all_facts(user_id: str) -> List[dict]:
+    """
+    Fetches all facts for a specific user.
+
+    Args:
+        user_id: The user's Telegram ID
+
+    Returns:
+        List of fact dictionaries
+    """
+    try:
+        current_db = get_db()
+        facts_ref = (
+            current_db.collection("factology").document(user_id).collection("entries")
+        )
+        docs = facts_ref.stream()
+
+        facts = []
+        for doc in docs:
+            fact_data = doc.to_dict()
+            fact_data["firestore_doc_id"] = doc.id
+            facts.append(fact_data)
+        return facts
+    except Exception as e:
+        logger.error(f"Error getting all facts for user {user_id}: {e}")
+        return []
+
+
+@retry_async()
+async def get_facts_async(user_id: str, limit: int = None) -> List[Dict[str, Any]]:
+    """
+    Async version of get_facts to prevent blocking the event loop.
+    
+    Args:
+        user_id: The user ID to fetch facts for
+        limit: Optional limit on number of facts to return
+        
+    Returns:
+        List of fact dictionaries
+    """
+    import asyncio
+    
+    # Run the sync function in a thread pool to avoid blocking
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, lambda: get_facts(user_id, limit))
+
+
+@retry_async()
+async def get_history_async(user_id: str):
+    """
+    Async version of get_history to prevent blocking the event loop.
+    
+    Args:
+        user_id: The user ID to fetch history for
+        
+    Returns:
+        List of message dictionaries
+    """
+    import asyncio
+    
+    # Run the sync function in a thread pool to avoid blocking
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, lambda: get_history(user_id))

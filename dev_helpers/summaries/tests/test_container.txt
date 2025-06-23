@@ -1,4 +1,0 @@
-hash:46eb61b95864eb46bfa8af4508cea9ec783ad2f3ae8fe85599fdc2aff6227a83
-path:tests/test_container.py | source:tests/test_container.py | lastUpdated:2025-05-21T13:06:39.236248 | lines:139
-
-This Python file contains pytest tests designed to verify the functionality of a Docker container running a telegram bot application. It uses pytest fixtures to manage the lifecycle of the Docker environment, including building a test image and starting/stopping a container. The tests then make HTTP requests to the running container's `/health` and `/webhook` endpoints to check their responses and status codes. The tests can be skipped via the `SKIP_CONTAINER_TESTS` environment variable.

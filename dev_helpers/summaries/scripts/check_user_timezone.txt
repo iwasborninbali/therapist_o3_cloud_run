@@ -1,4 +1,0 @@
-hash:c2584f124da8cd39fc4923d10694f4f75fbb68db8d710dcf23e83376fd79f6c8
-path:scripts/check_user_timezone.py | source:scripts/check_user_timezone.py | lastUpdated:2025-05-25T19:02:41.953690 | lines:47
-
-This Python script checks and manages a specific user's timezone setting, likely stored in a database via `firestore_client`. It retrieves the user's settings using `get_user_settings`. If no timezone is found, it sets a default value ('Asia/Makassar') using `set_user_settings`. Finally, it displays the current time, hour, and date according to the retrieved or set timezone using the `zoneinfo.ZoneInfo` class. It serves as a utility to verify and potentially initialize a user's timezone configuration.

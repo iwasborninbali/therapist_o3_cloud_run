@@ -1,4 +1,0 @@
-hash:3f3020902fa5026da79712e706eb703bd51e10bb6d1a93805a8743661e3c6a2c
-path:bot/__init__.py | source:bot/__init__.py | lastUpdated:2025-05-21T13:16:31.035210 | lines:1
-
-This `__init__.py` file marks its directory as a Python package. The comment suggests it is intended for initializing a bot module. It contains no functional code.

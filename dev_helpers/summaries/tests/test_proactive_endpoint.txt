@@ -1,4 +1,0 @@
-hash:17e2465e2d499bdc9eb5807325c3d27b9e13bb73f9e22bd46a0e25c475de6e53
-path:tests/test_proactive_endpoint.py | source:tests/test_proactive_endpoint.py | lastUpdated:2025-05-26T10:44:50.220167 | lines:146
-
-This file contains pytest tests for a FastAPI endpoint `/admin/send-proactive`. It uses `FastAPI.testclient` to simulate HTTP requests. The tests verify the endpoint's behavior when called with different `timezone` and `slot` query parameters, including successful calls, invalid inputs, URL encoding, and internal server errors. It utilizes a pytest fixture to mock the underlying `send_for_timezone_slot` function and checks if it's called correctly.

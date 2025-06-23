@@ -112,7 +112,7 @@ jobs:
             FIREBASE_CRED_JSON='${{ secrets.FIREBASE_CRED_JSON }}'
             FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
             GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
-          flags: --min-instances=0 --allow-unauthenticated # Set min-instances and allow unauthenticated access
+          flags: --min-instances=1 --max-instances=10 --concurrency=80 --memory=1Gi --cpu=1 --allow-unauthenticated
 
       - name: Output Deployed URL
         run: |

@@ -1,4 +1,0 @@
-hash:55b9c6dc28bc6e04c7107d873f17aef730e1365cd27174a04beadfbc362dc82d
-path:tasks/done/10_purge_encrypted_blob.md | source:tasks/done/10_purge_encrypted_blob.md | lastUpdated:2025-05-25T15:58:36.861488 | lines:39
-
-This document outlines Task 10: Purge Encrypted Blob Artifacts. Its main purpose is to remove encrypted binary credential files (`firebase_creds_encrypted.bin`) and associated code. This is required to comply with a new YAML-based environment variable strategy. Key steps include deleting the file, updating ignore lists, removing encryption logic from `config.py`, and updating scripts, documentation, and CI/tests. The task aims to eliminate the use of encrypted blobs for credentials.

@@ -59,3 +59,12 @@ Thumbs.db
 /functions/
 firebase.json github-deployer-key.json
 env_vars.yaml
+
+dev_helpers/
+hug_mvp_local/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*.class
+*.so

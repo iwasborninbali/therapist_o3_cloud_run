@@ -1,0 +1,5 @@
+[flake8]
+exclude =
+    .git,
+    __pycache__,
+    hug_mvp_local 

@@ -1,4 +1,0 @@
-hash:bc8aab485c50b845093e289942292e42d0598517cdf43a8e30cf1a04432edd47
-path:bot/main.py | source:bot/main.py | lastUpdated:2025-05-31T15:29:31.131388 | lines:134
-
-This file is the main entry point for a FastAPI web application serving as a backend for a Telegram bot. It initializes the Telegram bot application on startup and manages its shutdown. The application exposes endpoints for health checks, a root path, and a `/webhook` endpoint to receive and process Telegram updates asynchronously using background tasks. It also includes an administrative endpoint (`/admin/send-proactive`) to trigger sending proactive messages based on timezone and time slot. The script uses uvicorn to run the FastAPI application.

@@ -1,4 +1,0 @@
-hash:104c3759819498c11d25a1df3a6ccbbf53a5f7786ace43755ae1d7ebf8884008
-path:tasks/gemini_1/06_firebase_cred_handling.md | source:tasks/gemini_1/06_firebase_cred_handling.md | lastUpdated:2025-05-21T13:36:29.036586 | lines:57
-
-This document describes a hotfix task to implement flexible handling of Firebase credentials. The core change involves modifying `config.py` to check for a `FIREBASE_CRED_JSON` environment variable containing the credential JSON string. If found and `GOOGLE_APPLICATION_CREDENTIALS` is not set, the script will write the JSON content to a temporary file and set `GOOGLE_APPLICATION_CREDENTIALS` to that file path. This allows the Firebase Admin SDK to initialize correctly when credentials are provided as a string, particularly for Cloud Run deployments. The task also includes updating documentation (`README.md`, `ADR-0002-cloud-run-deploy.md`) and test configurations (`tests/conftest.py`).

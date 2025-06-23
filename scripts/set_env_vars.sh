@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-PROJECT_ID="therapist-o3"
+PROJECT_ID="ales-f75a1"
 REGION="us-central1"
 SERVICE_NAME="therapist-o3"
 
@@ -42,7 +42,7 @@ gcloud config set project ${PROJECT_ID}
 if [ -z "${FIREBASE_CRED_JSON}" ]; then
     echo -e "${YELLOW}⚠️  FIREBASE_CRED_JSON not set, trying to read from file...${NC}"
     if [ -f "ales-f75a1-firebase-adminsdk-fbsvc-e008504e79.json" ]; then
-        export FIREBASE_CRED_JSON=$(cat ales-f75a1-firebase-adminsdk-fbsvc-e008504e79.json | tr -d '\n')
+        export FIREBASE_CRED_JSON=$(cat ales-f75a1-firebase-adminsdk-fbsvc-e008504e79.json | tr -d '\n' | sed 's/"/\\"/g')
         echo -e "${GREEN}✅ Loaded Firebase credentials from file${NC}"
     else
         echo -e "${RED}❌ Firebase credentials not found. Set FIREBASE_CRED_JSON or provide the JSON file.${NC}"
@@ -63,9 +63,7 @@ if [ -z "${OPENAI_API_KEY}" ]; then
     MISSING_VARS+=("OPENAI_API_KEY")
 fi
 
-if [ -z "${GEMINI_API_KEY}" ]; then
-    MISSING_VARS+=("GEMINI_API_KEY")
-fi
+
 
 if [ ${#MISSING_VARS[@]} -gt 0 ]; then
     echo -e "${RED}❌ Missing required environment variables:${NC}"
@@ -85,10 +83,7 @@ gcloud run services update ${SERVICE_NAME} \
     --region=${REGION} \
     --update-env-vars="TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}" \
     --update-env-vars="OPENAI_API_KEY=${OPENAI_API_KEY}" \
-    --update-env-vars="GEMINI_API_KEY=${GEMINI_API_KEY}" \
-    --update-env-vars="FIREBASE_PROJECT_ID=ales-f75a1" \
-    --update-env-vars="FIREBASE_CRED_JSON=${FIREBASE_CRED_JSON}" \
-    --update-env-vars="ENABLE_TOOL_CALLING=true"
+    --update-env-vars="FIREBASE_PROJECT_ID=ales-f75a1"
 
 echo -e "${GREEN}✅ Environment variables updated successfully!${NC}"
 

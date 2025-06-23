@@ -1,4 +1,0 @@
-hash:7caa204d9b44f215b8a8aa410e526152f9bb831ef8cec27539db4a2f46ac7594
-path:tasks/gemini_1/17_webhook_bg_phase1.md | source:tasks/gemini_1/17_webhook_bg_phase1.md | lastUpdated:2025-05-31T15:44:33.098105 | lines:62
-
-This document outlines Task 17, Phase 1, aimed at resolving Telegram webhook timeout and duplicate message issues. The core objective is to implement immediate webhook acknowledgment and background processing with idempotency. This is achieved by changing the `/webhook` endpoint to return HTTP 200 immediately, processing messages asynchronously using FastAPI BackgroundTask, and adding Firestore-backed deduplication based on the `update_id`. Key files modified include `main.py`, `telegram_router.py`, and `firestore_client.py`. The expected outcome is a fast webhook response (≤100ms) and the elimination of duplicate messages while preserving existing functionality.

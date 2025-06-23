@@ -1,4 +1,0 @@
-hash:2392deefcbb19b2ac07bf43f1fc889d552f08152fc5afefa8999811d0f5d468f
-path:tests/test_webhook_dedup.py | source:tests/test_webhook_dedup.py | lastUpdated:2025-05-31T15:44:06.109068 | lines:182
-
-This file contains pytest tests for a Telegram bot's update handling logic. Its main purpose is to verify the deduplication mechanism, ensuring that duplicate incoming updates (identified by `update_id`) are processed only once. It uses mocks to simulate checking and marking updates as processed, mimicking interaction with a persistence layer like Firestore. The tests cover scenarios including processing the first update, skipping subsequent duplicates, and handling different update IDs correctly. It tests both the core `handle_update` function and the webhook endpoint's interaction with this logic.

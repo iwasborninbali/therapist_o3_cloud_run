@@ -1,4 +1,0 @@
-hash:6b91d8d14246e01643f2c884c58a9dbbb81b66852e74d2f633f43ed031e127ba
-path:tasks/gemini_1/13_deploy_scheduler_hotfix.md | source:tasks/gemini_1/13_deploy_scheduler_hotfix.md | lastUpdated:2025-05-25T20:49:33.224199 | lines:34
-
-This document outlines a task to deploy a hotfix for the `therapist-scheduler` service. The purpose is to restore proactive messaging functionality. The plan involves creating a script (`build_and_deploy_scheduler.sh`) to build a Docker image, copy environment variables from another service, and deploy with specific settings (service account, min-instances=1). Documentation (`README.md`) and project configuration (`project_manifest.json`) are also updated. The goal is to successfully deploy and run the correctly configured service.

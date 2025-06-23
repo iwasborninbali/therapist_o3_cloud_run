@@ -1,4 +1,0 @@
-hash:56bfc13f32e7962b222390ca23562c9e5cf666148d155d7465bfa9209ec537f0
-path:tasks/done/11_fix_proactive_scheduling.md | source:tasks/done/11_fix_proactive_scheduling.md | lastUpdated:2025-05-25T16:28:34.001867 | lines:47
-
-This document outlines Task 11: Fix Proactive Scheduling. The problem addressed is duplicate proactive messages caused by the scheduler script using hard-coded timezone loops. The solution involves implementing a universal scheduler that checks timezones per-user and uses Firestore for deduplication. Key steps include updating `firestore_client.py` with metadata functions and rewriting `scripts/proactive_messages.py` to incorporate the new logic and remove the old loops.

@@ -1,4 +1,0 @@
-hash:7bfa7ebc75502662e3936991ef3f46522d3eb34b53b6955d048ba770fece9dd9
-path:bot/proactive.py | source:bot/proactive.py | lastUpdated:2025-05-27T00:34:08.312679 | lines:297
-
-This Python module manages the delivery of proactive messages to users via a Telegram bot. It identifies users based on their timezone and specific time slots (morning/evening). For eligible users, it generates personalized messages using an AI model, leveraging user history and context stored in Firestore. The module then sends the generated message via the Telegram Bot API and updates the user's history and proactive metadata to prevent duplicates. Processing for a given timezone and slot is parallelized for efficiency.

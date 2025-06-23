@@ -1,4 +1,0 @@
-hash:a296466806cc241de3628f55893f3c05baca0e9e7131b0852aad781204ec02d5
-path:bot/tools_manager.py | source:bot/tools_manager.py | lastUpdated:2025-05-31T16:02:53.400704 | lines:145
-
-This Python file defines a `ToolsManager` class responsible for managing tools used with OpenAI function calling. It maintains a registry of available tools, including their specifications and corresponding handler functions. The manager provides tool definitions suitable for the OpenAI API via `get_tools_for_openai`. Its core functionality includes the `dispatch_tool_calls` method, which safely executes tool calls received from the model. This dispatcher injects server-side data like `user_id` and handles errors during execution. Currently, it registers and handles an `update_notes` tool, which saves client notes to Firestore via a provided client object.

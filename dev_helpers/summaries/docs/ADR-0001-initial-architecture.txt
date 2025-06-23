@@ -1,4 +1,0 @@
-hash:b04b4018a8142b59270ed8da613a764674d3a1cddeaf924720acd1ea0d581e64
-path:docs/ADR-0001-initial-architecture.md | source:docs/ADR-0001-initial-architecture.md | lastUpdated:2025-05-22T22:53:13.120131 | lines:86
-
-This ADR outlines the initial architecture for a Telegram AI Assistant bot. It uses FastAPI and `python-telegram-bot` to handle Telegram webhooks and user interactions. Conversation history, summaries, and system prompts are stored in Firebase Firestore. AI responses are generated using OpenAI, with Gemini used for conversation summarization to manage context. The application is containerized with Docker and deployed serverlessly on Google Cloud Run, explicitly avoiding Firebase Cloud Functions for the webhook.

@@ -1,4 +1,0 @@
-hash:4f5f86e89915323958e291a2e343d5fcd1940e4776dc3cc2707f902f3d7e4782
-path:tasks/gemini_1/04_ci_container_test.md | source:tasks/gemini_1/04_ci_container_test.md | lastUpdated:2025-05-21T13:07:09.625606 | lines:33
-
-This document outlines the task of creating a CI workflow to test a Telegram bot Docker container. The goal is to ensure the container builds, runs, and passes basic functional checks, specifically a health check returning 200 OK. This involves creating Python tests (`test_container.py`) using `pytest`, the `docker` library, and `requests`. The process includes setting up a CI workflow (likely in `.github/workflows/container-test.yml`) and updating the README with instructions. Implementation notes mention using pytest fixtures, retry logic, and an environment variable to skip tests.

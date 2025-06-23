@@ -1,4 +1,0 @@
-hash:bc39e97b33fc0216e0cefb55b66bb8be9ac8891698d596078b35d07054cb0288
-path:simple_check_notes.py | source:simple_check_notes.py | lastUpdated:2025-05-26T11:34:37.660796 | lines:72
-
-This Python script connects to Google Firestore using a service account key. Its main purpose is to retrieve and display recent notes stored within a nested collection structure (`notes/{user_id}/items`). The script fetches notes from all users, sorts them by timestamp, and prints details for the top 10 most recent entries. It also lists available collections in the database and verifies the existence of the "notes" collection. This provides a simple command-line tool for checking note data in Firestore.
