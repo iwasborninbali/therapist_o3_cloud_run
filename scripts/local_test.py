@@ -8,8 +8,8 @@ import sys
 import logging
 import asyncio
 
-# Add current directory to Python path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Add parent directory to Python path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Set environment for local development
 os.environ["RUN_MODE"] = "local"
@@ -42,7 +42,7 @@ def main():
         Config.validate()
         
         # Create the Application
-        app = Application.builder().token(Config.TELEGRAM_BOT_TOKEN).build()
+        app = Application.builder().token(Config.get_telegram_token(local_mode=True)).build()
         
         # Set up handlers
         setup_handlers(app)

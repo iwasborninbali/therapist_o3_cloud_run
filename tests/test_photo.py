@@ -97,4 +97,3 @@ async def test_handle_photo_size_limits(mock_update_photo, mock_context):
         await handle_photo(mock_update_photo, mock_context)
         mock_ask.assert_not_called()
         mock_send.assert_called_once()
-

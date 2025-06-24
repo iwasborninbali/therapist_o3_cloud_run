@@ -223,7 +223,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def _process_user_message(
-    context: ContextTypes.DEFAULT_TYPE, chat_id: int, user_id: str, user_message: str
+    context: ContextTypes.DEFAULT_TYPE, chat_id: int, user_id: str, user_message: str, image_data: bytes = None
 ) -> None:
     """Core logic for processing a user message and responding."""
     start_time = time.time()
@@ -285,7 +285,7 @@ async def _process_user_message(
         payload = build_payload(user_id, user_message, last_6_messages, o4_summary)
 
         # Call the API with function calling enabled
-        message = await get_o3_response_tool(payload)
+        message = await get_o3_response_tool(payload, image_data)
         bot_response_text = ""
 
         # Check for tool calls and process them
@@ -338,7 +338,9 @@ async def _process_user_message(
         # Save the interaction to history
         from datetime import datetime, timezone
         timestamp = datetime.now(timezone.utc)
-        add_message_with_timestamp(user_id, "user", user_message, timestamp)
+        # If image was provided, note it in the user message
+        user_message_for_history = f"{user_message} (изображение)" if image_data else user_message
+        add_message_with_timestamp(user_id, "user", user_message_for_history, timestamp)
         add_message_with_timestamp(user_id, "assistant", bot_response_text, timestamp)
 
     except Exception as e:
@@ -501,7 +503,7 @@ async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle incoming photo messages by sending them to the model."""
+    """Handle incoming photo messages by using the full therapist pipeline."""
     chat_id = update.effective_chat.id
     user_id = str(update.effective_user.id)
 
@@ -524,28 +526,8 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     caption_or_default = update.message.caption or "Опиши изображение"
 
-    try:
-        response_text = await ask_o3_with_image(img_bytes, caption_or_default)
-    except Exception as e:
-        logger.error(f"Image analysis failed: {e}")
-        await safe_send_message(context, chat_id, "Sorry, I couldn't analyze that image.")
-        return
-
-    await safe_send_message(context, chat_id, response_text)
-
-    from datetime import datetime, timezone
-
-    timestamp = datetime.now(timezone.utc)
-    try:
-        add_message_with_timestamp(
-            user_id,
-            "user",
-            f"{caption_or_default} (изображение)",
-            timestamp,
-        )
-        add_message_with_timestamp(user_id, "assistant", response_text, timestamp)
-    except Exception as e:
-        logger.error(f"Failed to save image conversation: {e}")
+    # Use the full therapist pipeline with image support
+    await _process_user_message(context, chat_id, user_id, caption_or_default, img_bytes)
 
 
 def setup_handlers(application: Application) -> None:
