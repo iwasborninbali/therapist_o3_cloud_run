@@ -63,19 +63,25 @@ async def test_handle_voice_message_success(mock_update_voice, mock_context):
     mock_update_voice.message.voice.get_file = AsyncMock(return_value=mock_file)
     
     with patch('bot.telegram_router.transcribe_audio', new_callable=AsyncMock) as mock_transcribe, \
-         patch('bot.telegram_router._process_user_message', new_callable=AsyncMock) as mock_process:
+         patch('bot.telegram_router._message_buffers', {}) as mock_buffers, \
+         patch('bot.telegram_router.asyncio.create_task') as mock_create_task:
         
         mock_transcribe.return_value = "Hello, this is a test message"
+        mock_task = AsyncMock()
+        mock_create_task.return_value = mock_task
         
         await handle_voice_message(mock_update_voice, mock_context)
         
         # Verify transcription was called
         mock_transcribe.assert_called_once_with(b"fake_audio_data")
         
-        # Verify message processing was called with transcribed text
-        mock_process.assert_called_once_with(
-            mock_context, 12345, "67890", "Hello, this is a test message"
-        )
+        # Verify message was added to buffer
+        assert "67890" in mock_buffers
+        assert mock_buffers["67890"]["text"] == "Hello, this is a test message"
+        assert mock_buffers["67890"]["chat_id"] == 12345
+        
+        # Verify delayed processing task was created
+        mock_create_task.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -167,19 +173,25 @@ async def test_handle_audio_message_success(mock_update_audio, mock_context):
     mock_update_audio.message.audio.get_file = AsyncMock(return_value=mock_file)
     
     with patch('bot.telegram_router.transcribe_audio', new_callable=AsyncMock) as mock_transcribe, \
-         patch('bot.telegram_router._process_user_message', new_callable=AsyncMock) as mock_process:
+         patch('bot.telegram_router._message_buffers', {}) as mock_buffers, \
+         patch('bot.telegram_router.asyncio.create_task') as mock_create_task:
         
         mock_transcribe.return_value = "Audio message transcribed"
+        mock_task = AsyncMock()
+        mock_create_task.return_value = mock_task
         
         await handle_voice_message(mock_update_audio, mock_context)
         
         # Verify transcription was called
         mock_transcribe.assert_called_once_with(b"fake_audio_data")
         
-        # Verify message processing was called with transcribed text
-        mock_process.assert_called_once_with(
-            mock_context, 12345, "67890", "Audio message transcribed"
-        )
+        # Verify message was added to buffer
+        assert "67890" in mock_buffers
+        assert mock_buffers["67890"]["text"] == "Audio message transcribed"
+        assert mock_buffers["67890"]["chat_id"] == 12345
+        
+        # Verify delayed processing task was created
+        mock_create_task.assert_called_once()
 
 
 @pytest.mark.asyncio
