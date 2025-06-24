@@ -1,6 +1,7 @@
 import logging
 import asyncio
 import json
+import time
 
 # from datetime import datetime # Unused
 from telegram import Update
@@ -35,6 +36,11 @@ logger = logging.getLogger(__name__)
 
 # Initialize factology manager lazily
 _factology_manager = None
+
+# Buffering of multi-part user messages
+MESSAGE_BUFFER_TIMEOUT = 5  # seconds to wait for additional parts
+MESSAGE_BUFFER_MAX_LENGTH = 40000  # limit to avoid huge buffers
+_message_buffers = {}
 
 
 def get_factology_manager():
@@ -208,13 +214,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await safe_send_message(context, update.effective_chat.id, help_message)
 
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle all non-command messages."""
-    chat_id = update.effective_chat.id
-    user_id = str(update.effective_user.id)
-    user_message = update.message.text
+async def _process_user_message(context: ContextTypes.DEFAULT_TYPE, chat_id: int, user_id: str, user_message: str) -> None:
+    """Process a complete user message (possibly merged from several parts)."""
 
-    import time
     start_time = time.time()
     logger.info(f"[TIMING] Message handling started for user {user_id}")
 
@@ -347,6 +349,71 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     finally:
         # Stop the "typing..." task
         typing_task.cancel()
+        try:
+            await typing_task
+        except asyncio.CancelledError:
+            pass
+
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle incoming messages with temporary buffering of multi-part inputs."""
+    chat_id = update.effective_chat.id
+    user_id = str(update.effective_user.id)
+    text = update.message.text
+
+    now = time.monotonic()
+
+    buffer = _message_buffers.get(user_id)
+    if buffer:
+        # Append new text and reset timer
+        buffer["text"] += "\n" + text
+        buffer["timestamp"] = now
+        if len(buffer["text"]) > MESSAGE_BUFFER_MAX_LENGTH:
+            await safe_send_message(
+                context,
+                chat_id,
+                "🚧 Сообщение слишком длинное, сократите его.",
+            )
+            if not buffer["task"].done():
+                buffer["task"].cancel()
+                try:
+                    await buffer["task"]
+                except asyncio.CancelledError:
+                    pass
+            _message_buffers.pop(user_id, None)
+            return
+        if not buffer["task"].done():
+            buffer["task"].cancel()
+            try:
+                await buffer["task"]
+            except asyncio.CancelledError:
+                pass
+        buffer["task"] = asyncio.create_task(_delayed_process(user_id, context))
+    else:
+        _message_buffers[user_id] = {
+            "text": text,
+            "timestamp": now,
+            "chat_id": chat_id,
+            "task": asyncio.create_task(_delayed_process(user_id, context)),
+        }
+
+
+async def _delayed_process(user_id: str, context: ContextTypes.DEFAULT_TYPE):
+    """Wait for MESSAGE_BUFFER_TIMEOUT, then process the buffered text."""
+    try:
+        await asyncio.sleep(MESSAGE_BUFFER_TIMEOUT)
+    except asyncio.CancelledError:
+        return
+
+    buffer = _message_buffers.get(user_id)
+    if not buffer:
+        return
+
+    if time.monotonic() - buffer["timestamp"] >= MESSAGE_BUFFER_TIMEOUT:
+        text = buffer["text"].strip()
+        chat_id = buffer["chat_id"]
+        _message_buffers.pop(user_id, None)
+        await _process_user_message(context, chat_id, user_id, text)
 
 
 def setup_handlers(application: Application) -> None:
