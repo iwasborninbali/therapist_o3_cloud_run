@@ -8,6 +8,7 @@ import json
 from bot.schemas import tools_schema as o3_tools_schema
 import httpx
 import time
+import base64
 
 logger = logging.getLogger(__name__)
 
@@ -63,15 +64,17 @@ def get_async_client():
 
 
 @retry_async()
-async def get_o3_response_tool(messages: List[Dict[str, Any]]):
+async def get_o3_response_tool(messages: List[Dict[str, Any]], image_data: bytes = None):
     """
     Gets a response from the o3 model, forcing it to use the 'process_user_message' tool.
+    Supports both text-only and image+text inputs.
 
     This function makes a single API call and returns the resulting message,
     which is expected to contain a tool_call with the analysis.
 
     Args:
         messages: A list of message dictionaries for the conversation history.
+        image_data: Optional image bytes to include with the last user message.
 
     Returns:
         The message object from the OpenAI API response.
@@ -79,6 +82,23 @@ async def get_o3_response_tool(messages: List[Dict[str, Any]]):
     logger.debug(
         f"Sending request to o3 with {len(messages)} messages, forcing tool call."
     )
+    
+    # If image_data is provided, modify the last user message to include the image
+    if image_data:
+        logger.debug("Adding image to the last user message")
+        b64 = base64.b64encode(image_data).decode()
+        data_uri = f"data:image/jpeg;base64,{b64}"
+        
+        # Find the last user message and convert it to multimodal format
+        for i in reversed(range(len(messages))):
+            if messages[i]["role"] == "user":
+                original_content = messages[i]["content"]
+                messages[i]["content"] = [
+                    {"type": "text", "text": original_content},
+                    {"type": "image_url", "image_url": {"url": data_uri}},
+                ]
+                break
+    
     aclient = get_async_client()
 
     try:
@@ -176,9 +196,36 @@ async def get_o4_mini_summary(
             
     except Exception as e:
         api_failed_time = time.time()
-        logger.error(f"[OPENAI-TIMING] OpenAI API failed after {api_failed_time - overall_start:.2f}s")
+
+        logger.error(
+            f"[OPENAI-TIMING] OpenAI API failed after {api_failed_time - overall_start:.2f}s"
+        )
         logger.error(f"OpenAI API error: {e}", exc_info=True)
         raise
+
+
+@retry_async()
+async def ask_o3_with_image(img_bytes: bytes, user_text: str, mime_type: str = "image/jpeg") -> str:
+    """Send an image and optional text to the o3 model and return the reply."""
+    b64 = base64.b64encode(img_bytes).decode()
+    data_uri = f"data:{mime_type};base64,{b64}"
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": user_text},
+                {"type": "image_url", "image_url": {"url": data_uri}},
+            ],
+        }
+    ]
+
+    aclient = get_async_client()
+    response = await aclient.chat.completions.create(
+        model=Config.OPENAI_MODEL,
+        messages=messages,
+    )
+
+    return response.choices[0].message.content
 
 
 async def warmup_openai_connection():

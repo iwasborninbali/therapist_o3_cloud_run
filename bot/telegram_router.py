@@ -27,7 +27,11 @@ from bot.firestore_client import (
     has_processed_update,
     mark_update_processed,
 )
-from bot.openai_client import get_o4_mini_summary, get_o3_response_tool
+from bot.openai_client import (
+    get_o4_mini_summary,
+    get_o3_response_tool,
+    ask_o3_with_image,
+)
 from bot.retry_utils import retry_async
 from bot.prompt_builder import build_o4_mini_payload, build_payload
 from bot.factology_manager import FactologyManager
@@ -211,14 +215,15 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "/help - Show this help message\n\n"
         "I'm your AI therapist, here to provide compassionate support. "
         "Just send me any message to start our conversation! \ud83d\udc9a\n"
-        "You can also send voice messages, and I'll transcribe them for you."
+        "You can also send voice messages, and I'll transcribe them for you.\n"
+        "You can send photos too — I can analyze them."
     )
 
     await safe_send_message(context, update.effective_chat.id, help_message)
 
 
 async def _process_user_message(
-    context: ContextTypes.DEFAULT_TYPE, chat_id: int, user_id: str, user_message: str
+    context: ContextTypes.DEFAULT_TYPE, chat_id: int, user_id: str, user_message: str, image_data: bytes = None
 ) -> None:
     """Core logic for processing a user message and responding."""
     start_time = time.time()
@@ -280,7 +285,7 @@ async def _process_user_message(
         payload = build_payload(user_id, user_message, last_6_messages, o4_summary)
 
         # Call the API with function calling enabled
-        message = await get_o3_response_tool(payload)
+        message = await get_o3_response_tool(payload, image_data)
         bot_response_text = ""
 
         # Check for tool calls and process them
@@ -333,7 +338,9 @@ async def _process_user_message(
         # Save the interaction to history
         from datetime import datetime, timezone
         timestamp = datetime.now(timezone.utc)
-        add_message_with_timestamp(user_id, "user", user_message, timestamp)
+        # If image was provided, note it in the user message
+        user_message_for_history = f"{user_message} (изображение)" if image_data else user_message
+        add_message_with_timestamp(user_id, "user", user_message_for_history, timestamp)
         add_message_with_timestamp(user_id, "assistant", bot_response_text, timestamp)
 
     except Exception as e:
@@ -495,6 +502,34 @@ async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYP
         }
 
 
+async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle incoming photo messages by using the full therapist pipeline."""
+    chat_id = update.effective_chat.id
+    user_id = str(update.effective_user.id)
+
+    try:
+        photo = update.message.photo[-1]
+        tfile = await photo.get_file()
+        img_bytes = bytes(await tfile.download_as_bytearray())
+    except Exception as e:
+        logger.error(f"Failed to download photo: {e}")
+        await safe_send_message(context, chat_id, "Sorry, I couldn't process that image.")
+        return
+
+    if len(img_bytes) > 20 * 1024 * 1024:
+        await safe_send_message(
+            context,
+            chat_id,
+            "Image is too large. Please keep it under 20MB.",
+        )
+        return
+
+    caption_or_default = update.message.caption or "Опиши изображение"
+
+    # Use the full therapist pipeline with image support
+    await _process_user_message(context, chat_id, user_id, caption_or_default, img_bytes)
+
+
 def setup_handlers(application: Application) -> None:
     """Configure message handlers for the Telegram bot"""
     # Add command handlers
@@ -510,5 +545,8 @@ def setup_handlers(application: Application) -> None:
     application.add_handler(
         MessageHandler(filters.VOICE | filters.AUDIO, handle_voice_message)
     )
+
+    # Add handler for photo messages
+    application.add_handler(MessageHandler(filters.PHOTO, handle_photo))
 
     logger.info("Telegram message handlers have been set up")
