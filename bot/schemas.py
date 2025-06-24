@@ -66,10 +66,11 @@ class ResponseMode(str, Enum):
 class AnalysisResult(BaseModel):
     """Complete analysis of a user's message."""
 
-    response: str = Field(
-        ...,
+    response: Optional[str] = Field(
+        default=None,
         description="A supportive and empathetic reply for the user.",
     )
+    text_to_client: Optional[str] = Field(default=None, description="Alias for 'response'.")
     response_mode: Optional[ResponseMode] = Field(
         default=None,
         description="Preferred delivery format (voice or text). Optional.",
@@ -78,6 +79,21 @@ class AnalysisResult(BaseModel):
         None,
         description="A list of structured fact objects. Must be null if no specific, meaningful fact is identified.",
     )
+
+    @model_validator(mode="after")
+    def consolidate_response(self):
+        """Ensure 'response' is populated, using 'text_to_client' as a fallback."""
+        if self.response is None and self.text_to_client is not None:
+            self.response = self.text_to_client
+
+        if self.response is None:
+            raise ValueError(
+                "Either 'response' or 'text_to_client' must be provided."
+            )
+
+        # Clean up the model by removing the alias field
+        self.text_to_client = None
+        return self
 
 
 # This is the tool schema that will be passed to the OpenAI API
