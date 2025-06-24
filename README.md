@@ -37,9 +37,16 @@ The application runs as a single Cloud Run service with proactive messaging trig
 - Automatic summarization of long conversations using Gemini
 - User-specific system prompts
 - Automated conversation length management with history trimming and summarization
+- Optional voice responses generated via Gemini TTS
 - **Universal proactive message scheduler** with per-user timezone support and deduplication
 - Robust error handling and retry mechanisms for external API calls
 - **Automated CI/CD pipeline** with auto-deploy to Google Cloud Run
+
+### Bot Commands
+
+- `/voice` – always respond with voice
+- `/text` – always respond with text
+- `/auto` – let the model decide
 
 ## Environment Setup
 
@@ -64,8 +71,11 @@ The application runs as a single Cloud Run service with proactive messaging trig
    DISABLE_STT=False
 
    # Gemini Configuration
-   GEMINI_API_KEY=your_gemini_api_key
-   GEMINI_MODEL=gemini-2.5-pro-preview-05-06 # Or your preferred Gemini model for summarization
+  GEMINI_API_KEY=your_gemini_api_key
+  GEMINI_MODEL=gemini-2.5-pro-preview-05-06 # Or your preferred Gemini model for summarization
+  GEMINI_TTS_URL=https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro-preview-tts:generateAudio
+  DISABLE_TTS=False
+  # This API key is used for both summarization and the optional TTS feature
 
    # Firebase Configuration
    FIREBASE_PROJECT_ID=your_firebase_project_id # Replace with your Firebase Project ID

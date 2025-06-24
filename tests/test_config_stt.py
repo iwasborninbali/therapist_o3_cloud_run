@@ -65,20 +65,32 @@ def test_config_validation_stt_disabled():
     
     try:
         Config.GROQ_API_KEY = None
+        Config.TELEGRAM_BOT_TOKEN = "t"
+        Config.OPENAI_API_KEY = "k"
+        Config.FIREBASE_PROJECT_ID = "p"
+        Config.GOOGLE_APPLICATION_CREDENTIALS = "c"
+        Config.GEMINI_API_KEY = None
         
         # Mock DISABLE_STT to be True
         with patch('os.getenv') as mock_getenv:
             def mock_getenv_side_effect(key, default=None):
                 if key == "DISABLE_STT":
                     return "True"
+                if key == "DISABLE_TTS":
+                    return "True"
                 return default
-            
+
             mock_getenv.side_effect = mock_getenv_side_effect
-            
+
             # Should not raise an exception
             Config.validate()
     finally:
         Config.GROQ_API_KEY = original_groq_key
+        Config.TELEGRAM_BOT_TOKEN = None
+        Config.OPENAI_API_KEY = None
+        Config.FIREBASE_PROJECT_ID = None
+        Config.GOOGLE_APPLICATION_CREDENTIALS = None
+        Config.GEMINI_API_KEY = None
 
 
 def test_config_validation_with_groq_key():
@@ -88,6 +100,7 @@ def test_config_validation_with_groq_key():
     # Since we're in testing mode and the real config should be valid
     # (assuming proper setup), this should pass
     try:
+        Config.GEMINI_API_KEY = "k"
         Config.validate()
     except ValueError as e:
         # If it fails, it should not be because of GROQ_API_KEY if STT is disabled
@@ -99,6 +112,8 @@ def test_config_validation_with_groq_key():
                 pytest.skip(f"Skipping test due to missing GROQ_API_KEY in environment: {e}")
         else:
             raise
+    finally:
+        Config.GEMINI_API_KEY = None
 
 
 def test_disable_stt_flag():
