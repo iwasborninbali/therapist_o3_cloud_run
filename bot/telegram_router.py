@@ -25,6 +25,7 @@ from bot.firestore_client import (
     get_facts,
     get_facts_async,
     get_user_settings,
+    set_user_settings,
     has_processed_update,
     mark_update_processed,
 )
@@ -38,7 +39,7 @@ from bot.prompt_builder import build_o4_mini_payload, build_payload
 from bot.factology_manager import FactologyManager
 from bot.schemas import AnalysisResult, ResponseMode
 from bot.speech_to_text import transcribe_audio
-from bot.text_to_speech import text_to_speech
+from bot.text_to_speech import generate_speech
 from io import BytesIO
 
 logger = logging.getLogger(__name__)
@@ -355,14 +356,18 @@ async def _process_user_message(
 
         if mode == "voice" and os.getenv("DISABLE_TTS") != "True":
             try:
-                audio_bytes = await text_to_speech(bot_response_text)
-                if len(audio_bytes) > 50 * 1024 * 1024:
+                audio_bytes = await generate_speech(bot_response_text)
+                if audio_bytes and len(audio_bytes) > 50 * 1024 * 1024:
                     logger.warning("Voice message too large (>50MB). Sending text instead.")
                     await safe_send_message(context, chat_id, bot_response_text)
-                else:
+                elif audio_bytes:
                     voice_file = BytesIO(audio_bytes)
-                    voice_file.name = "response.ogg"
+                    voice_file.name = "response.wav"
                     await context.bot.send_voice(chat_id=chat_id, voice=voice_file)
+                else:
+                    logger.error("TTS generation returned None")
+                    await safe_send_message(context, chat_id, bot_response_text)
+                    await safe_send_message(context, chat_id, "\u26a0\ufe0f Voice response unavailable.")
             except Exception as e:
                 logger.error(f"TTS generation failed: {e}")
                 await safe_send_message(context, chat_id, bot_response_text)

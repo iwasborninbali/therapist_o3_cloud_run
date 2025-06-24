@@ -24,7 +24,7 @@ async def test_voice_reply_mode(monkeypatch):
     monkeypatch.setattr('bot.telegram_router.get_o3_response_tool', AsyncMock(return_value=Msg()))
     monkeypatch.setattr('bot.telegram_router.get_user_settings', lambda uid: {"reply_mode": "voice"})
     fake_tts = AsyncMock(return_value=b"aud")
-    monkeypatch.setattr('bot.telegram_router.text_to_speech', fake_tts)
+    monkeypatch.setattr('bot.text_to_speech.generate_speech', fake_tts)
     monkeypatch.setattr('bot.telegram_router.keep_typing', AsyncMock())
     monkeypatch.setattr('bot.telegram_router.add_message_with_timestamp', lambda *a, **k: None)
 
@@ -51,7 +51,7 @@ async def test_text_reply_mode(monkeypatch):
         content = "hi"
     monkeypatch.setattr('bot.telegram_router.get_o3_response_tool', AsyncMock(return_value=Msg()))
     monkeypatch.setattr('bot.telegram_router.get_user_settings', lambda uid: {"reply_mode": "text"})
-    monkeypatch.setattr('bot.telegram_router.text_to_speech', AsyncMock())
+    monkeypatch.setattr('bot.text_to_speech.generate_speech', AsyncMock())
     monkeypatch.setattr('bot.telegram_router.keep_typing', AsyncMock())
     monkeypatch.setattr('bot.telegram_router.add_message_with_timestamp', lambda *a, **k: None)
 
