@@ -24,6 +24,7 @@ from bot.firestore_client import (
     set_system_prompt,
     get_facts,
     get_facts_async,
+    get_user_settings,
     has_processed_update,
     mark_update_processed,
 )
@@ -31,8 +32,10 @@ from bot.openai_client import get_o4_mini_summary, get_o3_response_tool
 from bot.retry_utils import retry_async
 from bot.prompt_builder import build_o4_mini_payload, build_payload
 from bot.factology_manager import FactologyManager
-from bot.schemas import AnalysisResult
+from bot.schemas import AnalysisResult, ResponseMode
 from bot.speech_to_text import transcribe_audio
+from bot.text_to_speech import text_to_speech
+from io import BytesIO
 
 logger = logging.getLogger(__name__)
 
@@ -208,13 +211,24 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     help_message = (
         "Here are the available commands:\n\n"
         "/start - Start or restart the bot\n"
-        "/help - Show this help message\n\n"
+        "/help  - Show this help message\n"
+        "/voice - always respond with voice\n"
+        "/text  - always respond with text\n"
+        "/auto  - let the model decide\n\n"
         "I'm your AI therapist, here to provide compassionate support. "
-        "Just send me any message to start our conversation! \ud83d\udc9a\n"
-        "You can also send voice messages, and I'll transcribe them for you."
+        "Just send me any message to start our conversation! \ud83d\udc9a"
     )
 
     await safe_send_message(context, update.effective_chat.id, help_message)
+
+
+async def _set_reply_mode(update: Update, context: ContextTypes.DEFAULT_TYPE, mode: str | None):
+    set_user_settings(str(update.effective_user.id), {"reply_mode": mode})
+    await safe_send_message(
+        context,
+        update.effective_chat.id,
+        f"\u0420\u0435\u0436\u0438\u043c \u043e\u0442\u0432\u0435\u0442\u0430: {mode or 'auto'}",
+    )
 
 
 async def _process_user_message(
@@ -282,6 +296,7 @@ async def _process_user_message(
         # Call the API with function calling enabled
         message = await get_o3_response_tool(payload)
         bot_response_text = ""
+        analysis = None
 
         # Check for tool calls and process them
         if message.tool_calls:
@@ -291,7 +306,7 @@ async def _process_user_message(
                     args = json.loads(tool_call.function.arguments)
                     analysis = AnalysisResult.model_validate(args)
 
-                    bot_response_text = analysis.text_to_client
+                    bot_response_text = analysis.response
 
                     if analysis.factology:
                         fact_manager = get_factology_manager()
@@ -327,8 +342,27 @@ async def _process_user_message(
         else:
             bot_response_text = "I'm not sure how to respond to that."
 
-        # Send the final response to the user
-        await safe_send_message(context, chat_id, bot_response_text)
+        user_settings = get_user_settings(user_id) or {}
+        user_pref = user_settings.get("reply_mode")
+        model_mode = analysis.response_mode.value if analysis and analysis.response_mode else None
+        mode = user_pref or model_mode or "text"
+
+        if mode == "voice" and os.getenv("DISABLE_TTS") != "True":
+            try:
+                audio_bytes = await text_to_speech(bot_response_text)
+                if len(audio_bytes) > 50 * 1024 * 1024:
+                    logger.warning("Voice message too large (>50MB). Sending text instead.")
+                    await safe_send_message(context, chat_id, bot_response_text)
+                else:
+                    voice_file = BytesIO(audio_bytes)
+                    voice_file.name = "response.ogg"
+                    await context.bot.send_voice(chat_id=chat_id, voice=voice_file)
+            except Exception as e:
+                logger.error(f"TTS generation failed: {e}")
+                await safe_send_message(context, chat_id, bot_response_text)
+                await safe_send_message(context, chat_id, "\u26a0\ufe0f Voice response unavailable.")
+        else:
+            await safe_send_message(context, chat_id, bot_response_text)
 
         # Save the interaction to history
         from datetime import datetime, timezone
@@ -500,6 +534,9 @@ def setup_handlers(application: Application) -> None:
     # Add command handlers
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("voice", lambda u, c: _set_reply_mode(u, c, "voice")))
+    application.add_handler(CommandHandler("text", lambda u, c: _set_reply_mode(u, c, "text")))
+    application.add_handler(CommandHandler("auto", lambda u, c: _set_reply_mode(u, c, None)))
 
     # Add handler for regular text messages
     application.add_handler(

@@ -70,6 +70,13 @@ class Config:
         "https://api.groq.com/openai/v1/audio/transcriptions",
     )
 
+    # Gemini configuration
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+    GEMINI_TTS_URL = os.getenv(
+        "GEMINI_TTS_URL",
+        "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro-preview-tts:generateAudio",
+    )
+
 
 
     # Firebase configuration
@@ -111,6 +118,9 @@ class Config:
 
         if not cls.GROQ_API_KEY and os.getenv("DISABLE_STT") != "True":
             missing.append("GROQ_API_KEY")
+
+        if not cls.GEMINI_API_KEY and os.getenv("DISABLE_TTS") != "True":
+            missing.append("GEMINI_API_KEY")
 
 
 

@@ -1,4 +1,5 @@
 from typing import Literal, Optional, List
+from enum import Enum
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 # The fixed list of categories is no longer needed.
@@ -57,15 +58,21 @@ class Factology(BaseModel):
         return self
 
 
-class AnalysisResult(BaseModel):
-    """
-    The complete analysis of a user's message, including a direct reply and any extracted facts.
-    This is the required output format for the 'process_user_message' tool.
-    """
+class ResponseMode(str, Enum):
+    VOICE = "voice"
+    TEXT = "text"
 
-    text_to_client: str = Field(
+
+class AnalysisResult(BaseModel):
+    """Complete analysis of a user's message."""
+
+    response: str = Field(
         ...,
-        description="A supportive and empathetic response to send directly to the user in the chat.",
+        description="A supportive and empathetic reply for the user.",
+    )
+    response_mode: Optional[ResponseMode] = Field(
+        default=None,
+        description="Preferred delivery format (voice or text). Optional.",
     )
     factology: Optional[List[Factology]] = Field(
         None,
