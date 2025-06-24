@@ -87,13 +87,13 @@ async def test_handle_voice_message_success(mock_update_voice, mock_context):
 @pytest.mark.asyncio
 async def test_handle_voice_message_too_long(mock_update_voice, mock_context):
     """Test rejection of voice messages that are too long"""
-    mock_update_voice.message.voice.duration = 150  # Too long
+    mock_update_voice.message.voice.duration = 1300  # Too long (over 20 minutes)
     
     with patch('bot.telegram_router.safe_send_message', new_callable=AsyncMock) as mock_send:
         await handle_voice_message(mock_update_voice, mock_context)
         
         mock_send.assert_called_once_with(
-            mock_context, 12345, "Voice message is too long. Please keep it under 2 minutes."
+            mock_context, 12345, "Voice message is too long. Please keep it under 20 minutes."
         )
 
 

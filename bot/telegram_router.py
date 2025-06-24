@@ -475,11 +475,11 @@ async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYP
         f"Voice message from {user_id}, file_id={voice.file_unique_id} duration={voice.duration}s"
     )
 
-    if voice.duration and voice.duration > 120:
+    if voice.duration and voice.duration > 1200:
         await safe_send_message(
             context,
             chat_id,
-            "Voice message is too long. Please keep it under 2 minutes.",
+            "Voice message is too long. Please keep it under 20 minutes.",
         )
         return
 

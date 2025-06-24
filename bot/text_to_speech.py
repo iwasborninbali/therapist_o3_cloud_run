@@ -108,7 +108,7 @@ async def generate_speech(text: str, voice: str = "Kore") -> Optional[bytes]:
                 f"{Config.GEMINI_TTS_URL}?key={Config.GEMINI_API_KEY}",
                 json=payload,
                 headers=headers,
-                timeout=aiohttp.ClientTimeout(total=30)
+                timeout=aiohttp.ClientTimeout(total=120)
             ) as response:
                 if response.status != 200:
                     error_text = await response.text()

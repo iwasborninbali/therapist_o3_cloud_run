@@ -73,7 +73,7 @@ The application runs as a single Cloud Run service with proactive messaging trig
    # Gemini Configuration
   GEMINI_API_KEY=your_gemini_api_key
   GEMINI_MODEL=gemini-2.5-pro-preview-05-06 # Or your preferred Gemini model for summarization
-  GEMINI_TTS_URL=https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro-preview-tts:generateAudio
+  GEMINI_TTS_URL=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent
   DISABLE_TTS=False
   # This API key is used for both summarization and the optional TTS feature
 
