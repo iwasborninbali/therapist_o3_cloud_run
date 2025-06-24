@@ -27,7 +27,11 @@ from bot.firestore_client import (
     has_processed_update,
     mark_update_processed,
 )
-from bot.openai_client import get_o4_mini_summary, get_o3_response_tool
+from bot.openai_client import (
+    get_o4_mini_summary,
+    get_o3_response_tool,
+    ask_o3_with_image,
+)
 from bot.retry_utils import retry_async
 from bot.prompt_builder import build_o4_mini_payload, build_payload
 from bot.factology_manager import FactologyManager
@@ -211,7 +215,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "/help - Show this help message\n\n"
         "I'm your AI therapist, here to provide compassionate support. "
         "Just send me any message to start our conversation! \ud83d\udc9a\n"
-        "You can also send voice messages, and I'll transcribe them for you."
+        "You can also send voice messages, and I'll transcribe them for you.\n"
+        "You can send photos too — I can analyze them."
     )
 
     await safe_send_message(context, update.effective_chat.id, help_message)
@@ -495,6 +500,54 @@ async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYP
         }
 
 
+async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle incoming photo messages by sending them to the model."""
+    chat_id = update.effective_chat.id
+    user_id = str(update.effective_user.id)
+
+    try:
+        photo = update.message.photo[-1]
+        tfile = await photo.get_file()
+        img_bytes = bytes(await tfile.download_as_bytearray())
+    except Exception as e:
+        logger.error(f"Failed to download photo: {e}")
+        await safe_send_message(context, chat_id, "Sorry, I couldn't process that image.")
+        return
+
+    if len(img_bytes) > 20 * 1024 * 1024:
+        await safe_send_message(
+            context,
+            chat_id,
+            "Image is too large. Please keep it under 20MB.",
+        )
+        return
+
+    caption_or_default = update.message.caption or "Опиши изображение"
+
+    try:
+        response_text = await ask_o3_with_image(img_bytes, caption_or_default)
+    except Exception as e:
+        logger.error(f"Image analysis failed: {e}")
+        await safe_send_message(context, chat_id, "Sorry, I couldn't analyze that image.")
+        return
+
+    await safe_send_message(context, chat_id, response_text)
+
+    from datetime import datetime, timezone
+
+    timestamp = datetime.now(timezone.utc)
+    try:
+        add_message_with_timestamp(
+            user_id,
+            "user",
+            f"{caption_or_default} (изображение)",
+            timestamp,
+        )
+        add_message_with_timestamp(user_id, "assistant", response_text, timestamp)
+    except Exception as e:
+        logger.error(f"Failed to save image conversation: {e}")
+
+
 def setup_handlers(application: Application) -> None:
     """Configure message handlers for the Telegram bot"""
     # Add command handlers
@@ -510,5 +563,8 @@ def setup_handlers(application: Application) -> None:
     application.add_handler(
         MessageHandler(filters.VOICE | filters.AUDIO, handle_voice_message)
     )
+
+    # Add handler for photo messages
+    application.add_handler(MessageHandler(filters.PHOTO, handle_photo))
 
     logger.info("Telegram message handlers have been set up")

@@ -8,6 +8,7 @@ import json
 from bot.schemas import tools_schema as o3_tools_schema
 import httpx
 import time
+import base64
 
 logger = logging.getLogger(__name__)
 
@@ -176,9 +177,36 @@ async def get_o4_mini_summary(
             
     except Exception as e:
         api_failed_time = time.time()
-        logger.error(f"[OPENAI-TIMING] OpenAI API failed after {api_failed_time - overall_start:.2f}s")
+
+        logger.error(
+            f"[OPENAI-TIMING] OpenAI API failed after {api_failed_time - overall_start:.2f}s"
+        )
         logger.error(f"OpenAI API error: {e}", exc_info=True)
         raise
+
+
+@retry_async()
+async def ask_o3_with_image(img_bytes: bytes, user_text: str, mime_type: str = "image/jpeg") -> str:
+    """Send an image and optional text to the o3 model and return the reply."""
+    b64 = base64.b64encode(img_bytes).decode()
+    data_uri = f"data:{mime_type};base64,{b64}"
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": user_text},
+                {"type": "image_url", "image_url": {"url": data_uri}},
+            ],
+        }
+    ]
+
+    aclient = get_async_client()
+    response = await aclient.chat.completions.create(
+        model=Config.OPENAI_MODEL,
+        messages=messages,
+    )
+
+    return response.choices[0].message.content
 
 
 async def warmup_openai_connection():
