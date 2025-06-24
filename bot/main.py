@@ -52,14 +52,17 @@ def check_firebase_health():
     last_health_check = current_time
     return firebase_healthy
 
-def create_telegram_bot():
+def create_telegram_bot(local_mode=False):
     """Factory function to create and configure the Telegram bot application"""
     try:
         # Validate configuration
         Config.validate()
         
+        # Get the appropriate token based on mode
+        token = Config.get_telegram_token(local_mode=local_mode)
+        
         # Create the Application
-        app = Application.builder().token(Config.TELEGRAM_BOT_TOKEN).build()
+        app = Application.builder().token(token).build()
         
         # Set up handlers
         setup_handlers(app)
@@ -271,7 +274,7 @@ if __name__ == "__main__":
         # Application.run_polling() handles the asyncio event loop automatically
         try:
             # Re-create the application object here for the polling context
-            local_bot = create_telegram_bot()
+            local_bot = create_telegram_bot(local_mode=True)
 
             logger.info("Bot is running in polling mode. Press Ctrl+C to stop.")
             # run_polling is a blocking call that sets up its own asyncio loop
