@@ -10,16 +10,27 @@ logger = logging.getLogger(__name__)
 @retry_async()
 async def text_to_speech(text: str) -> bytes:
     payload = {
-        "text": text,
-        "audioConfig": {
-            "audioEncoding": "OGG_OPUS",
-            "sampleRateHertz": 48000,
-        },
+        "contents": [{
+            "parts": [{
+                "text": text
+            }]
+        }],
+        "generationConfig": {
+            "responseModalities": ["AUDIO"],
+            "speechConfig": {
+                "voiceConfig": {
+                    "prebuiltVoiceConfig": {
+                        "voiceName": "Kore"
+                    }
+                }
+            }
+        }
     }
     url = f"{Config.GEMINI_TTS_URL}?key={Config.GEMINI_API_KEY}"
 
     async with httpx.AsyncClient(timeout=60) as c:
         r = await c.post(url, json=payload)
         r.raise_for_status()
-        audio_b64 = r.json()["audio"]["data"]
+        # Response structure for new TTS API
+        audio_b64 = r.json()["candidates"][0]["content"]["parts"][0]["inlineData"]["data"]
     return base64.b64decode(audio_b64)

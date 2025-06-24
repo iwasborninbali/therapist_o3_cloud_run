@@ -74,7 +74,7 @@ class Config:
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
     GEMINI_TTS_URL = os.getenv(
         "GEMINI_TTS_URL",
-        "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-pro-preview-tts:generateAudio",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent",
     )
 
 
