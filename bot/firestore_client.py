@@ -730,7 +730,8 @@ def has_processed_update(update_id):
     """
     try:
         current_db = get_db()
-        processed_ref = current_db.collection("processed_updates").document(
+        collection_name = Config.IDEMPOTENCY_COLLECTION
+        processed_ref = current_db.collection(collection_name).document(
             str(update_id)
         )
         doc = processed_ref.get()
@@ -756,7 +757,8 @@ def mark_update_processed(update_id):
     """
     try:
         current_db = get_db()
-        processed_ref = current_db.collection("processed_updates").document(
+        collection_name = Config.IDEMPOTENCY_COLLECTION
+        processed_ref = current_db.collection(collection_name).document(
             str(update_id)
         )
 
