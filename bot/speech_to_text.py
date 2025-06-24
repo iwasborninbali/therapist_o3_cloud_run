@@ -10,7 +10,7 @@ async def transcribe_audio(audio_bytes: bytes, filename: str = "voice.ogg") -> s
     """Send audio to Groq Whisper API and return the transcribed text."""
     url = Config.GROQ_WHISPER_URL
     headers = {"Authorization": f"Bearer {Config.GROQ_API_KEY}"}
-    data = {"model": "whisper-v3-large"}
+    data = {"model": "whisper-large-v3-turbo"}
     files = {"file": (filename, audio_bytes, "audio/ogg; codecs=opus")}
 
     async with httpx.AsyncClient(timeout=60.0) as client:
