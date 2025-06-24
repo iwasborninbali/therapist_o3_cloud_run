@@ -58,6 +58,11 @@ The application runs as a single Cloud Run service with proactive messaging trig
    OPENAI_API_KEY=your_openai_api_key
    OPENAI_MODEL=o3
 
+   # Groq Whisper Configuration
+   GROQ_API_KEY=your_groq_api_key
+   GROQ_WHISPER_URL=https://api.groq.com/openai/v1/audio/transcriptions
+   DISABLE_STT=False
+
    # Gemini Configuration
    GEMINI_API_KEY=your_gemini_api_key
    GEMINI_MODEL=gemini-2.5-pro-preview-05-06 # Or your preferred Gemini model for summarization

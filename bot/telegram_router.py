@@ -1,6 +1,8 @@
 import logging
 import asyncio
 import json
+import os
+import time
 
 # from datetime import datetime # Unused
 from telegram import Update
@@ -30,6 +32,7 @@ from bot.retry_utils import retry_async
 from bot.prompt_builder import build_o4_mini_payload, build_payload
 from bot.factology_manager import FactologyManager
 from bot.schemas import AnalysisResult
+from bot.speech_to_text import transcribe_audio
 
 logger = logging.getLogger(__name__)
 
@@ -202,19 +205,17 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "/start - Start or restart the bot\n"
         "/help - Show this help message\n\n"
         "I'm your AI therapist, here to provide compassionate support. "
-        "Just send me any message to start our conversation! 💚"
+        "Just send me any message to start our conversation! \ud83d\udc9a\n"
+        "You can also send voice messages, and I'll transcribe them for you."
     )
 
     await safe_send_message(context, update.effective_chat.id, help_message)
 
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle all non-command messages."""
-    chat_id = update.effective_chat.id
-    user_id = str(update.effective_user.id)
-    user_message = update.message.text
-
-    import time
+async def _process_user_message(
+    context: ContextTypes.DEFAULT_TYPE, chat_id: int, user_id: str, user_message: str
+) -> None:
+    """Core logic for processing a user message and responding."""
     start_time = time.time()
     logger.info(f"[TIMING] Message handling started for user {user_id}")
 
@@ -229,7 +230,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             db_start = time.time()
             facts = await get_facts_async(user_id)
             history = await get_history_async(user_id)
-            recent_history = history[-6:]  # Get the last 6 messages
+            recent_history = history[-6:]
             logger.info(f"[TIMING] DB operations took {time.time() - db_start:.2f}s")
 
             # 2. Build the payload for o4-mini
@@ -270,8 +271,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             )
 
         # --- o3 Therapist Model Step ---
-        # Build the payload for the main model (o3) (use already fetched history)
-        last_6_messages = history[-6:]  # Get the last 6 messages
+        last_6_messages = history[-6:]
         payload = build_payload(user_id, user_message, last_6_messages, o4_summary)
 
         # Call the API with function calling enabled
@@ -283,16 +283,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             tool_call = message.tool_calls[0]
             if tool_call.function.name == "process_user_message":
                 try:
-                    # Parse the arguments from the model
                     args = json.loads(tool_call.function.arguments)
                     analysis = AnalysisResult.model_validate(args)
 
-                    # Set the text to print to the console
                     bot_response_text = analysis.text_to_client
 
-                    # Save facts if they exist
                     if analysis.factology:
-                        # The new manager saves facts one by one
                         fact_manager = get_factology_manager()
                         saved_count = 0
                         for fact in analysis.factology:
@@ -322,7 +318,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 bot_response_text = "I received a tool call I don't know how to handle."
 
         elif message.content:
-            # Fallback if the model doesn't use the tool
             bot_response_text = message.content
         else:
             bot_response_text = "I'm not sure how to respond to that."
@@ -345,8 +340,64 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await safe_send_message(context, chat_id, error_message)
 
     finally:
-        # Stop the "typing..." task
         typing_task.cancel()
+
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle all non-command messages."""
+    chat_id = update.effective_chat.id
+    user_id = str(update.effective_user.id)
+    user_message = update.message.text
+
+    await _process_user_message(context, chat_id, user_id, user_message)
+
+
+async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle incoming voice messages by transcribing them and delegating to handle_message."""
+    chat_id = update.effective_chat.id
+    user_id = str(update.effective_user.id)
+    voice = update.message.voice or update.message.audio
+
+    # Allow disabling STT for CI or maintenance
+    if os.getenv("DISABLE_STT") == "True":
+        await safe_send_message(context, chat_id, "\u26a0\ufe0f \u0420\u0430\u0441\u043f\u043e\u0437\u043d\u0430\u0432\u0430\u043d\u0438\u0435 \u0440\u0435\u0447\u0438 \u0432\u0440\u0435\u043c\u0435\u043d\u043d\u043e \u043e\u0442\u043a\u043b\u044e\u0447\u0435\u043d\u043e.")
+        return
+
+    logger.info(
+        f"Voice message from {user_id}, file_id={voice.file_unique_id} duration={voice.duration}s"
+    )
+
+    if voice.duration and voice.duration > 120:
+        await safe_send_message(
+            context,
+            chat_id,
+            "Voice message is too long. Please keep it under 2 minutes.",
+        )
+        return
+
+    if voice.file_size and voice.file_size > 5_000_000:
+        await safe_send_message(
+            context,
+            chat_id,
+            "Audio file is too large. Please keep it under 5MB.",
+        )
+        return
+
+    try:
+        tfile = await voice.get_file()
+        audio_bytes = bytes(await tfile.download_as_bytearray())
+        text = await transcribe_audio(audio_bytes)
+    except Exception as e:
+        logger.error(f"Voice transcription failed: {e}")
+        await safe_send_message(context, chat_id, "Sorry, I couldn't process that audio message.")
+        return
+
+    if not text:
+        await safe_send_message(context, chat_id, "I couldn't understand the audio message.")
+        return
+
+    # Reuse the main message processing logic with the transcribed text
+    await _process_user_message(context, chat_id, user_id, text)
 
 
 def setup_handlers(application: Application) -> None:
@@ -358,6 +409,11 @@ def setup_handlers(application: Application) -> None:
     # Add handler for regular text messages
     application.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
+    )
+
+    # Add handler for voice messages
+    application.add_handler(
+        MessageHandler(filters.VOICE | filters.AUDIO, handle_voice_message)
     )
 
     logger.info("Telegram message handlers have been set up")

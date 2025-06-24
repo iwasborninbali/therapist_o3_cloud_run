@@ -62,6 +62,13 @@ class Config:
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     OPENAI_MODEL = os.getenv("OPENAI_MODEL", "o3")
 
+    # Groq Whisper configuration
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+    GROQ_WHISPER_URL = os.getenv(
+        "GROQ_WHISPER_URL",
+        "https://api.groq.com/openai/v1/audio/transcriptions",
+    )
+
 
 
     # Firebase configuration
@@ -90,6 +97,9 @@ class Config:
 
         if not cls.OPENAI_API_KEY:
             missing.append("OPENAI_API_KEY")
+
+        if not cls.GROQ_API_KEY and os.getenv("DISABLE_STT") != "True":
+            missing.append("GROQ_API_KEY")
 
 
 
