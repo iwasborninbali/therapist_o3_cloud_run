@@ -47,7 +47,7 @@ def convert_l16_to_wav(pcm_data: bytes, sample_rate: int = 24000, channels: int 
     
     return wav_header + pcm_data
 
-async def generate_speech(text: str, voice: str = "Kore") -> Optional[bytes]:
+async def generate_speech(text: str, voice: str = "Gacrux") -> Optional[bytes]:
     """
     Generates speech audio from text using Gemini TTS API.
     
@@ -91,8 +91,7 @@ async def generate_speech(text: str, voice: str = "Kore") -> Optional[bytes]:
             "speechConfig": {
                 "voiceConfig": {
                     "prebuiltVoiceConfig": {
-                        "voiceName": voice,
-                        "languageCode": "ru-RU"
+                        "voiceName": voice
                     }
                 }
             }
