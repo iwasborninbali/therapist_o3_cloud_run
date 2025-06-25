@@ -91,7 +91,8 @@ async def generate_speech(text: str, voice: str = "Kore") -> Optional[bytes]:
             "speechConfig": {
                 "voiceConfig": {
                     "prebuiltVoiceConfig": {
-                        "voiceName": voice
+                        "voiceName": voice,
+                        "languageCode": "ru-RU"
                     }
                 }
             }
