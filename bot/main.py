@@ -213,27 +213,25 @@ def build_app():
 app = build_app()
 
 async def keep_alive_worker():
-    """Keep the container and OpenAI connections warm"""
+    """Keep the container warm to avoid cold starts"""
     if os.getenv("RUN_MODE") == "local":
         logger.info("Keep-alive disabled in local mode")
         return
         
     # Wait a bit before starting keep-alive
-    await asyncio.sleep(120)  # 2 minutes initial delay
+    await asyncio.sleep(300)  # 5 minutes initial delay
     
     service_url = os.getenv("SERVICE_URL", "https://therapist-o3-7kgz7ksata-uc.a.run.app")
     health_url = f"{service_url}/health"
     
-    logger.info(f"Starting keep-alive worker for {health_url} + OpenAI connection")
-    
-    from bot.openai_client import ping_openai_connection
+    logger.info(f"Starting keep-alive worker for {health_url}")
     
     async with httpx.AsyncClient(timeout=30.0) as client:
         ping_counter = 0
         while True:
             try:
-                # Wait 8 minutes between keep-alive cycles
-                await asyncio.sleep(480)  # 8 minutes (increased from 4)
+                # Wait 20 minutes between keep-alive cycles (reduced from 8 min)
+                await asyncio.sleep(1200)  # 20 minutes
                 ping_counter += 1
                 
                 # Health check every cycle
@@ -243,12 +241,8 @@ async def keep_alive_worker():
                 else:
                     logger.warning(f"Keep-alive health check returned: {response.status_code}")
                 
-                # OpenAI ping every cycle to maintain connection
-                openai_success = await ping_openai_connection()
-                if openai_success:
-                    logger.debug(f"OpenAI connection keep-alive successful (cycle {ping_counter})")
-                else:
-                    logger.warning(f"OpenAI connection keep-alive failed (cycle {ping_counter})")
+                # Note: OpenAI ping removed to save API costs
+                # OpenAI connections will warm up on first actual request
                     
             except Exception as e:
                 logger.error(f"Keep-alive worker failed: {e}")

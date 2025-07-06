@@ -102,7 +102,7 @@ gcloud run deploy ${SERVICE_NAME} \
     --region=${REGION} \
     --platform=managed \
     --allow-unauthenticated \
-    --min-instances=1 \
+    --min-instances=0 \
     --max-instances=10 \
     --concurrency=80 \
     --memory=1Gi \
